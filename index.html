@@ -284,7 +284,9 @@ a.st.g { color: var(--ice); border-color: color-mix(in srgb, var(--ice) 45%, tra
 .stops i { width: 26px; height: 26px; border-radius: 50%; background: var(--void); border: 5px solid var(--s); box-shadow: 0 0 0 3px var(--panel); transition: transform var(--dur) var(--ease); }
 .stops li.opt i { border-style: dotted; }
 .stops b { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700; color: var(--s); line-height: 1.2; }
-.stops small { font-size: 11px; color: var(--faint); line-height: 1.3; }
+.stops a > span { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.stops small .nw { white-space: nowrap; }
+.stops small { font-size: 11px; color: var(--faint); line-height: 1.3; text-wrap: balance; }
 
 /* ---------- notes ---------- */
 .notes { margin: 0; padding: var(--sp-5) var(--sp-5) var(--sp-5) calc(var(--sp-5) + 1.2em); display: flex; flex-direction: column; gap: var(--sp-2); font-size: var(--fs-sm); color: #c3ccdb; }
@@ -362,7 +364,7 @@ a.st.g { color: var(--ice); border-color: color-mix(in srgb, var(--ice) 45%, tra
   .stops::before { left: 11px; right: auto; top: 12px; bottom: 12px; width: 4px; height: auto; }
   .stops li { justify-content: flex-start; }
   .stops a { flex-direction: row; text-align: left; gap: var(--sp-3); }
-  .stops a span { display: flex; flex-direction: column; }
+  .stops a > span { align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -706,7 +708,7 @@ a.st.g { color: var(--ice); border-color: color-mix(in srgb, var(--ice) 45%, tra
           <li style="--s: var(--t2)"><a href="#c-cs229"><i></i><span><b>CS229</b><small>机器学习</small></span></a></li>
           <li style="--s: var(--t3)"><a href="#c-cs230"><i></i><span><b>CS230</b><small>深度学习</small></span></a></li>
           <li style="--s: var(--t4)"><a href="#c-cs224n"><i></i><span><b>CS224N</b><small>深度学习 NLP</small></span></a></li>
-          <li style="--s: var(--t7)"><a href="#c-cme295"><i></i><span><b>CME295</b><small>Transformer 与大语言模型</small></span></a></li>
+          <li style="--s: var(--t7)"><a href="#c-cme295"><i></i><span><b>CME295</b><small>Transformer <span class="nw">与大语言模型</span></small></span></a></li>
           <li style="--s: var(--t7)"><a href="#c-cs336"><i></i><span><b>CS336</b><small>从零构建语言模型</small></span></a></li>
         </ol>
       </div>

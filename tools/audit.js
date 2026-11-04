@@ -20,6 +20,8 @@ const url = process.argv[2];
       if (/[一-鿿][,:;!?()]|[,:;!?(][一-鿿]/.test(t)) add('half-width punct');
       if (/"/.test(t)) add('ASCII quote');
       if (/  /.test(t)) add('double space');
+      if (/[一-鿿][ \u00a0\u3000]+[一-鿿]/.test(t)) add('space between CJK');
+      if (/[^\s，。、；：！？）」”》][ \u00a0]+[，。、；：！？）」”》]|[，。、；：！？）」”》][ \u00a0]+[^\s·（「“《]|[（「“《][ \u00a0]+\S/.test(t)) add('space next to full-width punct');
       if (/[▶↗↑⇢→]/.test(t)) add('glyph icon');
     }
     // ---- 2. cross-section data consistency ----
