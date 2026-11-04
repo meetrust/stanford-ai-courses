@@ -7,7 +7,7 @@
 ## 项目结构
 
 ```
-index.html                     单文件页面（HTML + CSS + JS，Mermaid 与 Google Fonts 走 CDN）
+index.html                     单文件页面（HTML + CSS + JS；图表全部为原生 HTML/CSS + 内联 SVG，只有 Google Fonts 走 CDN）
 tools/audit.js                 交付前的自动审计脚本（Playwright）
 .github/workflows/deploy-pages.yml   推送到 main 后自动部署到 GitHub Pages
 ```

@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.16.1/dist/mermaid.min.js"></script>
 <style>
 /* Series: same night palette, type families and track colours as the LLM visual guide.
    Layout idea for this volume: a wide academic catalogue — top navigation, a "periodic table" of courses
@@ -156,24 +155,22 @@ main { padding-bottom: var(--sp-9); }
 .graph-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--sp-5); align-items: start; }
 #depfig, .dos > *, .line > * { min-width: 0; }
 .graph-body { padding: var(--sp-5) var(--sp-4); overflow-x: auto; overscroll-behavior-x: contain; }
-pre.mermaid { margin: 0; min-height: 520px; text-align: center; background: transparent; font-family: var(--font-mono); font-size: var(--fs-2xs); color: #4f5d77; white-space: pre; }
-.no-mermaid pre.mermaid { text-align: left; color: var(--dim); min-height: 0; }
-#depfig pre.mermaid svg { display: block; margin: 0 auto; max-width: none; height: auto; }
-#depfig .nodeLabel { color: #c9d3e3; font-size: 13px; line-height: 1.5; }
-#depfig .nodeLabel b { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
-#depfig .edgeLabel rect { opacity: 1 !important; fill: #0b1019 !important; }
-#depfig .edgeLabel, #depfig .edgeLabel p, #depfig span.edgeLabel { background: transparent !important; }
-#depfig .edgeLabel p { margin: 0; padding: 2px 9px; border: 1px solid var(--lc, var(--rule-2)); border-radius: 7px; background: #0b1019 !important; color: #eef2f8; font-size: 12.5px; font-weight: 500; line-height: 20px; white-space: nowrap; }
-#depfig .edgeLabel.dash p { border-style: dashed; }
-#depfig .node { cursor: pointer; outline: none; transition: opacity var(--dur) var(--ease), filter var(--dur) var(--ease); }
-#depfig .node:focus-visible rect { stroke: var(--amber) !important; stroke-width: 3px !important; }
-#depfig .flowchart-link, #depfig .sig, #depfig .node .label-container { transition: opacity var(--dur) var(--ease); }
-#depfig .sig { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 19; opacity: .5; animation: flow 1.8s linear infinite; pointer-events: none; }
-#depfig.is-focus .node:not(.on) .label-container { opacity: .3; }
-#depfig.is-focus .node:not(.on) .nodeLabel p { color: color-mix(in srgb, var(--ink) 30%, var(--panel)); }
-#depfig.is-focus .flowchart-link:not(.on), #depfig.is-focus .sig:not(.on) { opacity: .08; }
-#depfig.is-focus g.edgeLabel:not(.on) p { color: color-mix(in srgb, #eef2f8 24%, #0b1019); border-color: color-mix(in srgb, var(--lc, var(--rule-2)) 30%, #0b1019); }
-.swipe { display: none; margin: 0; padding: var(--sp-2) var(--sp-4) 0; font-size: var(--fs-2xs); color: var(--faint); }
+.cgraph { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: ".     n221  ." ".     n229  ." "n230  n229m ." "n224n n236  ." "n295  n224u n234" ".     n336  ."; column-gap: var(--sp-6); row-gap: 60px; padding: 2px 0 6px; }
+.cg-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.cg-edges .e { fill: none; stroke: var(--c); stroke-width: 2; stroke-linecap: round; transition: opacity var(--dur) var(--ease); }
+.cg-edges .e.dash { stroke-dasharray: 6 5; }
+.cg-edges .sig { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 19; opacity: .5; animation: flow 1.8s linear infinite; transition: opacity var(--dur) var(--ease); }
+.cg-node { position: relative; z-index: 1; justify-self: center; width: 100%; max-width: 204px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 66px; padding: 10px 12px; border: 2px solid var(--c); border-radius: var(--r-sm); background: var(--cb); color: var(--ink-2); text-align: center; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), opacity var(--dur) var(--ease); }
+.cg-node.opt { border-style: dashed; }
+.cg-node .nw { white-space: nowrap; }
+.cg-node b { font: 700 16px/1.2 var(--font-mono); color: #fff; letter-spacing: -.01em; }
+.cg-node span { font-size: 13px; line-height: 1.4; text-wrap: balance; }
+.cg-node:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+.cg-label { position: absolute; z-index: 2; left: 0; top: 0; padding: 0 9px; border: 1px solid var(--c); border-radius: 7px; background: #0b1019; color: #eef2f8; font-size: 12.5px; font-weight: 500; line-height: 20px; white-space: nowrap; pointer-events: none; transition: color var(--dur), border-color var(--dur); }
+.cg-label.dash { border-style: dashed; }
+#depfig.is-focus .cg-node:not(.on) { opacity: .3; }
+#depfig.is-focus .cg-edges .e:not(.on), #depfig.is-focus .cg-edges .sig:not(.on) { opacity: .08; }
+#depfig.is-focus .cg-label:not(.on) { color: color-mix(in srgb, #eef2f8 24%, #0b1019); border-color: color-mix(in srgb, var(--c) 30%, #0b1019); }
 
 .reader { position: sticky; top: calc(var(--nav-h) + 16px); display: flex; flex-direction: column; gap: var(--sp-4); }
 .reader .panel { padding: var(--sp-4); }
@@ -314,7 +311,7 @@ a.st.g { color: var(--ice); border-color: color-mix(in srgb, var(--ice) 45%, tra
   a.st:hover { background: rgba(255, 255, 255, .05); }
   .line:hover { border-color: color-mix(in srgb, var(--c) 45%, var(--rule)); }
   .stops a:hover i { transform: scale(1.18); }
-  #depfig .node:hover .label-container { filter: brightness(1.2); }
+  .cg-node:hover { transform: var(--lift); box-shadow: 0 0 0 1px var(--c), 0 12px 28px -16px var(--c); text-decoration: none; }
   .totop:hover { border-color: var(--amber); }
 }
 
@@ -345,7 +342,10 @@ a.st.g { color: var(--ice); border-color: color-mix(in srgb, var(--ice) 45%, tra
   .datastrip div { min-width: 33%; flex: 1 1 33%; }
   .datastrip div:nth-child(4) { border-left: 0; padding-left: 0; }
   .reader { grid-template-columns: minmax(0, 1fr); }
-  .swipe { display: block; }
+  .cgraph { column-gap: var(--sp-3); row-gap: 84px; }
+  .cg-node { min-height: 72px; padding: 8px 6px; }
+  .cg-node b { font-size: 14px; }
+  .cg-node span { font-size: var(--fs-2xs); }
   .phases { grid-template-columns: 1fr; gap: var(--sp-4); }
   .phases::before { left: 17px; right: auto; top: 18px; bottom: 18px; width: 2px; height: auto; background: linear-gradient(var(--t1), var(--t2), var(--t3), var(--t4), var(--t7)); }
   .phases li { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: start; text-align: left; column-gap: var(--sp-3); row-gap: 4px; }
@@ -454,54 +454,20 @@ a.st.g { color: var(--ice); border-color: color-mix(in srgb, var(--ice) 45%, tra
     <div class="graph-grid">
       <figure class="panel" id="depfig" style="margin: 0">
         <figcaption class="cap"><b>FIG.01 · 课程依赖图谱</b><span><span class="hover-only">悬停高亮依赖链 · </span>点击节点查看课程档案</span></figcaption>
-        <p class="swipe">图按原尺寸显示，左右滑动查看全图</p>
         <div class="graph-body">
-<pre class="mermaid" aria-label="10 门课程的学习依赖图，文字版见右侧连线说明">
-flowchart TB
-    CS221("<b>CS221</b><br/>人工智能")
-    CS229("<b>CS229</b><br/>机器学习")
-    CS229M("<b>CS229M</b><br/>机器学习理论")
-    CS230("<b>CS230</b><br/>深度学习")
-    CS234("<b>CS234</b><br/>强化学习")
-    CS224N("<b>CS224N</b><br/>深度学习 NLP")
-    CS236("<b>CS236</b><br/>深度生成模型")
-    CS224U("<b>CS224U</b><br/>自然语言理解")
-    CME295("<b>CME295</b><br/>Transformer 与大语言模型")
-    CS336("<b>CS336</b><br/>从零构建语言模型")
-    CS221 -->|"ML 基础"| CS229
-    CS229 -->|"神经网络"| CS230
-    CS229 -.->|"理论深化"| CS229M
-    CS229 -->|"RL 分支"| CS234
-    CS230 -->|"序列建模"| CS224N
-    CS230 -->|"生成建模"| CS236
-    CS229M -.->|"概率与理论"| CS236
-    CS224N -->|"NLU 项目"| CS224U
-    CS224N -->|"Transformer"| CME295
-    CME295 -->|"从概念到实现"| CS336
-    CS234 -.->|"RLHF 与对齐"| CS336
-    classDef t1 fill:#0f2536,stroke:#7cc8ff,stroke-width:2px,color:#e8edf5
-    classDef t2 fill:#1e1a3a,stroke:#a99bff,stroke-width:2px,color:#e8edf5
-    classDef t2opt fill:#1e1a3a,stroke:#a99bff,stroke-width:2px,stroke-dasharray:5 4,color:#e8edf5
-    classDef t3 fill:#2e2810,stroke:#ffd166,stroke-width:2px,color:#e8edf5
-    classDef t4 fill:#33200f,stroke:#ff9f5a,stroke-width:2px,color:#e8edf5
-    classDef t5 fill:#361518,stroke:#ff6b6b,stroke-width:2px,color:#e8edf5
-    classDef t6 fill:#0f2e24,stroke:#4fd6a0,stroke-width:2px,color:#e8edf5
-    classDef t7 fill:#351530,stroke:#ff7ad9,stroke-width:2px,color:#e8edf5
-    class CS221 t1
-    class CS229 t2
-    class CS229M t2opt
-    class CS230 t3
-    class CS224N,CS224U t4
-    class CS234 t5
-    class CS236 t6
-    class CME295,CS336 t7
-    linkStyle 0,2 stroke:#a99bff,stroke-width:2px
-    linkStyle 1 stroke:#ffd166,stroke-width:2px
-    linkStyle 3 stroke:#ff6b6b,stroke-width:2px
-    linkStyle 4,7 stroke:#ff9f5a,stroke-width:2px
-    linkStyle 5,6 stroke:#4fd6a0,stroke-width:2px
-    linkStyle 8,9,10 stroke:#ff7ad9,stroke-width:2px
-</pre>
+          <div class="cgraph" id="cgraph" role="group" aria-label="10 门课程的学习依赖图，文字版见右侧连线说明">
+            <svg class="cg-edges" aria-hidden="true"></svg>
+            <a class="cg-node" href="#c-cs221" data-node="CS221" style="--c: var(--t1); --cb: #0f2536; grid-area: n221" aria-label="CS221 人工智能，查看课程档案"><b>CS221</b><span>人工智能</span></a>
+            <a class="cg-node" href="#c-cs229" data-node="CS229" style="--c: var(--t2); --cb: #1e1a3a; grid-area: n229" aria-label="CS229 机器学习，查看课程档案"><b>CS229</b><span>机器学习</span></a>
+            <a class="cg-node opt" href="#c-cs229m" data-node="CS229M" style="--c: var(--t2); --cb: #1e1a3a; grid-area: n229m" aria-label="CS229M 机器学习理论，查看课程档案"><b>CS229M</b><span>机器学习理论</span></a>
+            <a class="cg-node" href="#c-cs230" data-node="CS230" style="--c: var(--t3); --cb: #2e2810; grid-area: n230" aria-label="CS230 深度学习，查看课程档案"><b>CS230</b><span>深度学习</span></a>
+            <a class="cg-node" href="#c-cs234" data-node="CS234" style="--c: var(--t5); --cb: #361518; grid-area: n234" aria-label="CS234 强化学习，查看课程档案"><b>CS234</b><span>强化学习</span></a>
+            <a class="cg-node" href="#c-cs224n" data-node="CS224N" style="--c: var(--t4); --cb: #33200f; grid-area: n224n" aria-label="CS224N 深度学习 NLP，查看课程档案"><b>CS224N</b><span>深度学习 NLP</span></a>
+            <a class="cg-node" href="#c-cs236" data-node="CS236" style="--c: var(--t6); --cb: #0f2e24; grid-area: n236" aria-label="CS236 深度生成模型，查看课程档案"><b>CS236</b><span>深度生成模型</span></a>
+            <a class="cg-node" href="#c-cs224u" data-node="CS224U" style="--c: var(--t4); --cb: #33200f; grid-area: n224u" aria-label="CS224U 自然语言理解，查看课程档案"><b>CS224U</b><span>自然语言理解</span></a>
+            <a class="cg-node" href="#c-cme295" data-node="CME295" style="--c: var(--t7); --cb: #351530; grid-area: n295" aria-label="CME295 Transformer 与大语言模型，查看课程档案"><b>CME295</b><span>Transformer <span class="nw">与大语言模型</span></span></a>
+            <a class="cg-node" href="#c-cs336" data-node="CS336" style="--c: var(--t7); --cb: #351530; grid-area: n336" aria-label="CS336 从零构建语言模型，查看课程档案"><b>CS336</b><span>从零构建语言模型</span></a>
+          </div>
         </div>
       </figure>
 
@@ -856,7 +822,7 @@ flowchart TB
     });
   });
 
-  /* ---------- Mermaid graph ---------- */
+  /* ---------- FIG.01 dependency graph (native: HTML nodes, SVG edges measured from the layout, HTML label chips) ---------- */
   var fig = document.getElementById("depfig");
   var edgeButtons = Array.prototype.slice.call(document.querySelectorAll("#edgeList button"));
   var G = { nodes: {}, edges: [] };
@@ -892,77 +858,94 @@ flowchart TB
     b.addEventListener("blur", clearHL);
   });
 
-  function wireGraph() {
-    var svg = fig.querySelector("svg");
-    if (!svg) return;
-    var re = /L[_-]([A-Za-z0-9]+)[_-]([A-Za-z0-9]+)[_-]\d+$/;
-    Array.prototype.forEach.call(svg.querySelectorAll("g.node"), function (g) {
-      var m = (g.id || "").match(/flowchart-([A-Za-z0-9]+)-\d+$/);
-      if (!m) return;
-      var code = m[1];
-      G.nodes[code] = g;
-      g.setAttribute("tabindex", "0");
-      g.setAttribute("role", "link");
-      g.setAttribute("aria-label", code + "，查看课程档案");
-      g.addEventListener("click", function () { clearHL(); goTo("c-" + code.toLowerCase()); });
-      g.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goTo("c-" + code.toLowerCase()); } });
-      g.addEventListener("pointerenter", function (e) { if (isMouse(e)) focusNode(code); });
-      g.addEventListener("pointerleave", function (e) { if (isMouse(e)) clearHL(); });
-      g.addEventListener("focus", function () { if (kbFocus(g)) focusNode(code); });
-      g.addEventListener("blur", clearHL);
-    });
-    Array.prototype.forEach.call(svg.querySelectorAll("path.flowchart-link"), function (p) {
-      var m = (p.id || "").match(re);
-      if (!m) return;
-      G.edges.push({ el: p, f: m[1], t: m[2] });
-      var dashed = /edge-pattern-(dotted|dashed)/.test(p.getAttribute("class") || "");
-      if (!dashed && !reduce) {
-        var sig = p.cloneNode(false);
-        sig.removeAttribute("id"); sig.removeAttribute("marker-end"); sig.removeAttribute("style");
-        sig.setAttribute("class", "sig");
-        p.parentNode.insertBefore(sig, p.nextSibling);
-        G.edges.push({ el: sig, f: m[1], t: m[2] });
-      }
-    });
-    Array.prototype.forEach.call(svg.querySelectorAll("g.edgeLabel"), function (g) {
-      var inner = g.querySelector("[data-id]");
-      var m = inner && (inner.getAttribute("data-id") || "").match(re);
-      if (!m) return;
-      G.edges.push({ el: g, f: m[1], t: m[2] });
-      g.style.setProperty("--lc", token(TRACK[m[2]] || "--rule-2"));
-      var path = svg.querySelector('path.flowchart-link[id$="L_' + m[1] + "_" + m[2] + '_0"]');
-      if (path && /edge-pattern-(dotted|dashed)/.test(path.getAttribute("class") || "")) g.classList.add("dash");
-    });
-    var scroller = fig.querySelector(".graph-body");
-    if (scroller && scroller.scrollWidth > scroller.clientWidth && G.nodes.CS221) {
-      var nr = G.nodes.CS221.getBoundingClientRect(), sr = scroller.getBoundingClientRect();
-      scroller.scrollLeft += (nr.left + nr.width / 2) - (sr.left + sr.width / 2);
+  var EDGES = [
+    { f: "CS221", t: "CS229", label: "ML 基础" },
+    { f: "CS229", t: "CS230", label: "神经网络", fa: 0.3, ta: 0.6 },
+    { f: "CS229", t: "CS229M", label: "理论深化", dash: true },
+    { f: "CS229", t: "CS234", label: "RL 分支", side: true },
+    { f: "CS230", t: "CS224N", label: "序列建模" },
+    { f: "CS230", t: "CS236", label: "生成建模", fa: 0.8, ta: 0.3 },
+    { f: "CS229M", t: "CS236", label: "概率与理论", dash: true, fa: 0.6, ta: 0.7 },
+    { f: "CS224N", t: "CS224U", label: "NLU 项目", fa: 0.8, ta: 0.4 },
+    { f: "CS224N", t: "CME295", label: "Transformer" },
+    { f: "CME295", t: "CS336", label: "从概念到实现", fa: 0.7, ta: 0.3 },
+    { f: "CS234", t: "CS336", label: "RLHF 与对齐", dash: true, fa: 0.3, ta: 0.75 }
+  ];
+  var cg = document.getElementById("cgraph"), NS = "http://www.w3.org/2000/svg";
+  Array.prototype.forEach.call(cg.querySelectorAll(".cg-node"), function (n) {
+    var code = n.dataset.node;
+    G.nodes[code] = n;
+    /* hover highlight only for a real mouse; keyboard focus only when :focus-visible; a tap or click goes to the dossier and never leaves the graph dimmed */
+    n.addEventListener("pointerenter", function (e) { if (isMouse(e)) focusNode(code); });
+    n.addEventListener("pointerleave", function (e) { if (isMouse(e)) clearHL(); });
+    n.addEventListener("focus", function () { if (kbFocus(n)) focusNode(code); });
+    n.addEventListener("blur", clearHL);
+    n.addEventListener("click", clearHL);
+  });
+  function drawGraph() {
+    var svg = cg.querySelector(".cg-edges"), box = cg.getBoundingClientRect();
+    if (!box.width) return;
+    clearHL();
+    G.edges = [];
+    svg.setAttribute("viewBox", "0 0 " + box.width + " " + box.height);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    Array.prototype.forEach.call(cg.querySelectorAll(".cg-label"), function (n) { n.remove(); });
+    var defs = document.createElementNS(NS, "defs"), markers = {};
+    svg.appendChild(defs);
+    function rect(code) { var r = G.nodes[code].getBoundingClientRect(); return { x: r.left - box.left, y: r.top - box.top, w: r.width, h: r.height }; }
+    function marker(c) {
+      if (markers[c]) return markers[c];
+      var id = "cgm" + Object.keys(markers).length, m = document.createElementNS(NS, "marker"), p = document.createElementNS(NS, "path");
+      m.setAttribute("id", id); m.setAttribute("viewBox", "0 0 10 10"); m.setAttribute("refX", "9"); m.setAttribute("refY", "5");
+      m.setAttribute("markerWidth", "9"); m.setAttribute("markerHeight", "9"); m.setAttribute("markerUnits", "userSpaceOnUse"); m.setAttribute("orient", "auto");
+      p.setAttribute("d", "M0,1 L9,5 L0,9 z"); p.setAttribute("fill", c);
+      m.appendChild(p); defs.appendChild(m);
+      return (markers[c] = id);
     }
-  }
-
-  function renderGraph() {
-    if (!window.mermaid) { document.documentElement.classList.add("no-mermaid"); return; }
-    var T = {
-      darkMode: true,
-      background: token("--panel"),
-      fontFamily: '"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif',
-      fontSize: "14px",
-      primaryColor: token("--panel-2"), primaryTextColor: token("--ink"), primaryBorderColor: token("--rule-2"),
-      lineColor: "#7f8fa9", textColor: "#c9d3e3", edgeLabelBackground: "#0b1019"
-    };
-    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-    ready.catch(function () {}).then(function () {
-      window.mermaid.initialize({
-        startOnLoad: false, securityLevel: "strict", theme: "base", themeVariables: T,
-        flowchart: { curve: "basis", htmlLabels: true, useMaxWidth: false, nodeSpacing: 36, rankSpacing: 50, padding: 16, diagramPadding: 12 }
+    /* label chips: try the middle of the curve first, then slide along it until nothing is hit */
+    var taken = Object.keys(G.nodes).map(rect);
+    function hit(a, b) { return a.x < b.x + b.w + 4 && b.x < a.x + a.w + 4 && a.y < b.y + b.h + 3 && b.y < a.y + a.h + 3; }
+    EDGES.forEach(function (e) {
+      var a = rect(e.f), b = rect(e.t), c = token(TRACK[e.t] || "--rule-2"), d, p1, p2 = [b.x + b.w * (e.ta || 0.5), b.y];
+      if (e.side) {
+        p1 = [a.x + a.w, a.y + a.h / 2];
+        var r = Math.max(0, Math.min(32, p2[0] - p1[0], p2[1] - p1[1]));
+        d = "M" + p1 + " L" + (p2[0] - r) + "," + p1[1] + " Q" + p2[0] + "," + p1[1] + " " + p2[0] + "," + (p1[1] + r) + " L" + p2;
+      } else {
+        p1 = [a.x + a.w * (e.fa || 0.5), a.y + a.h];
+        var k = Math.max(18, (p2[1] - p1[1]) * 0.5);
+        d = "M" + p1 + " C" + p1[0] + "," + (p1[1] + k) + " " + p2[0] + "," + (p2[1] - k) + " " + p2;
+      }
+      var path = document.createElementNS(NS, "path");
+      path.setAttribute("d", d); path.setAttribute("class", "e" + (e.dash ? " dash" : "")); path.style.setProperty("--c", c);
+      path.setAttribute("marker-end", "url(#" + marker(c) + ")"); path.dataset.f = e.f; path.dataset.t = e.t;
+      svg.appendChild(path);
+      G.edges.push({ el: path, f: e.f, t: e.t });
+      if (!e.dash && !reduce) {
+        var sig = document.createElementNS(NS, "path");
+        sig.setAttribute("d", d); sig.setAttribute("class", "sig");
+        svg.appendChild(sig);
+        G.edges.push({ el: sig, f: e.f, t: e.t });
+      }
+      var lab = document.createElement("span");
+      lab.className = "cg-label" + (e.dash ? " dash" : ""); lab.textContent = e.label; lab.style.setProperty("--c", c); lab.dataset.f = e.f; lab.dataset.t = e.t;
+      cg.appendChild(lab);
+      var w = lab.offsetWidth, h = lab.offsetHeight, len = path.getTotalLength(), best = null, bestScore = Infinity;
+      [0.5, 0.42, 0.58, 0.34, 0.66, 0.27, 0.73, 0.2, 0.8].some(function (t) {
+        var q = path.getPointAtLength(len * t), x = Math.min(Math.max(q.x - w / 2, 2), box.width - w - 2), bx = { x: x, y: q.y - h / 2, w: w, h: h };
+        var score = taken.filter(function (o) { return hit(bx, o); }).length;
+        if (score < bestScore) { bestScore = score; best = bx; }
+        return score === 0;
       });
-      return window.mermaid.run({ querySelector: "#depfig pre.mermaid" });
-    }).then(wireGraph).catch(function (err) {
-      document.documentElement.classList.add("no-mermaid");
-      if (window.console) console.error(err);
+      lab.style.left = best.x + "px"; lab.style.top = best.y + "px";
+      taken.push(best);
+      G.edges.push({ el: lab, f: e.f, t: e.t });
     });
   }
-  document.addEventListener("DOMContentLoaded", renderGraph);
+  drawGraph();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawGraph).catch(function () {});
+  if (window.ResizeObserver) { new ResizeObserver(function () { window.requestAnimationFrame(drawGraph); }).observe(cg); }
+  else { window.addEventListener("resize", drawGraph); }
 
   /* ---------- scrollspy + progress + back-to-top ---------- */
   var links = Array.prototype.slice.call(document.querySelectorAll('.nav ol a'));

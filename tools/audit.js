@@ -65,11 +65,13 @@ const url = process.argv[2];
       if (nxt !== gNxt) out.data.push(c + ' 后续 ' + nxt + ' VS graph ' + gNxt);
     });
     // graph svg edges vs edge list
-    const svgEdges = [...document.querySelectorAll('#depfig path.flowchart-link')].map(pth => { const m = pth.id.match(/L_([A-Za-z0-9]+)_([A-Za-z0-9]+)_\d+$/); return m ? m[1] + '>' + m[2] + (/dotted/.test(pth.getAttribute('class')) ? '?' : '') : '?'; }).sort().join(',');
+    const svgEdges = [...document.querySelectorAll('#depfig .cg-edges path.e')].map(pth => pth.dataset.f + '>' + pth.dataset.t + (pth.classList.contains('dash') ? '?' : '')).sort().join(',');
+    const labelEdges = [...document.querySelectorAll('#depfig .cg-label')].map(l => l.dataset.f + '>' + l.dataset.t + (l.classList.contains('dash') ? '?' : '')).sort().join(',');
     const listEdges = edges.map(e => e.f + '>' + e.t + (e.opt ? '?' : '')).sort().join(',');
     if (svgEdges !== listEdges) out.data.push('graph edges VS list: ' + svgEdges + ' VS ' + listEdges);
+    if (labelEdges !== listEdges) out.data.push('graph labels VS list: ' + labelEdges + ' VS ' + listEdges);
     // ---- 3. element sizes by role ----
-    const groups = { 'tile .el': '.el', 'btn': '.dos-act .btn', 'rel chip': '.rel', 'track-chip': '.track-chip', 'lvl': '.lvl', 'status pill': '.st', 'tk': '.tk', 'spec chip': '.specs div', 'filter btn': '.fbtn', 'phase node': '.phases .pn', 'metro stop': '.stops i', 'node box': '#depfig g.node rect', 'edge label': '#depfig g.edgeLabel p' };
+    const groups = { 'tile .el': '.el', 'btn': '.dos-act .btn', 'rel chip': '.rel', 'track-chip': '.track-chip', 'lvl': '.lvl', 'status pill': '.st', 'tk': '.tk', 'spec chip': '.specs div', 'filter btn': '.fbtn', 'phase node': '.phases .pn', 'metro stop': '.stops i', 'node box': '#depfig .cg-node', 'edge label': '#depfig .cg-label' };
     Object.entries(groups).forEach(([k, sel]) => {
       const hs = [...document.querySelectorAll(sel)].filter(e => e.offsetParent !== null || e.closest('svg')).map(e => Math.round(e.getBoundingClientRect().height));
       out.sizes[k] = [...new Set(hs)].sort((a, b) => a - b).join(',') + '  (n=' + hs.length + ')';
