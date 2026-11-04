@@ -86,9 +86,42 @@ const url = process.argv[2];
     });
     out.trunc = [...document.querySelectorAll('.btn .lbl small, .el-name, .stops small, .lvl, .track-chip')].filter(e => e.offsetParent && e.scrollWidth > e.clientWidth + 1).map(e => e.textContent);
     out.icons = Object.fromEntries(Object.entries(ic).map(([k, v]) => [k, [...v].join(' ')]));
+    // ---- visible text below 12px (brand mark and nav numbers excepted), SVG text measured after scaling ----
+    out.small = [];
+    { const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let t;
+      while ((t = w.nextNode())) {
+        const p = t.parentElement; if (!p || !t.nodeValue.trim() || p.closest('script,style,.sr-only,.brand-mark,.n')) continue;
+        const s = getComputedStyle(p); if (s.display === 'none' || s.visibility === 'hidden' || !p.getBoundingClientRect().width) continue;
+        let fs = parseFloat(s.fontSize); if (p.ownerSVGElement) fs *= p.getScreenCTM().a;
+        if (fs < 11.95) out.small.push(fs.toFixed(1) + 'px :: ' + t.nodeValue.trim().slice(0, 20));
+      } }
+    // ---- single-character last lines in Chinese text (vertical labels excepted) ----
+    out.orphans = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const cs = getComputedStyle(el);
+      if (!/block|list-item|table-cell|flex|grid/.test(cs.display) || cs.writingMode !== 'horizontal-tb' || !el.getBoundingClientRect().width) continue;
+      if (![...el.childNodes].some(k => k.nodeType === 3 && k.nodeValue.trim())) continue;
+      const lines = []; const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let t;
+      while ((t = w.nextNode())) {
+        let q = t.parentElement, nested = false;
+        while (q && q !== el) { if (/block|list-item|table|flex|grid/.test(getComputedStyle(q).display)) { nested = true; break; } q = q.parentElement; }
+        if (nested) continue;
+        for (let i = 0; i < t.nodeValue.length; i++) {
+          const c = t.nodeValue[i]; if (/\s/.test(c)) continue;
+          const r = document.createRange(); r.setStart(t, i); r.setEnd(t, i + 1); const b = r.getClientRects()[0]; if (!b || !b.width) continue;
+          const y = Math.round(b.top + b.height / 2), L = lines[lines.length - 1];
+          if (L && Math.abs(L.y - y) < 6) L.s += c; else lines.push({ y, s: c });
+        }
+      }
+      if (lines.length < 2) continue;
+      const core = lines[lines.length - 1].s.replace(/[，。、；：！？）」”》,.;:!?)\]]/g, '');
+      if (core.length === 1 && /[一-鿿]/.test(core)) out.orphans.push(lines[lines.length - 2].s.slice(-10) + ' | ' + lines[lines.length - 1].s);
+    }
     return out;
   });
   console.log('== TEXT ==\n' + (r.text.join('\n') || 'none'));
+  console.log('== SMALL TEXT (<12px) ==\n' + (r.small.join('\n') || 'none'));
+  console.log('== ORPHAN LINES ==\n' + (r.orphans.join('\n') || 'none'));
   console.log('== DATA ==\n' + (r.data.join('\n') || 'none'));
   console.log('== SIZES (heights px) ==');
   Object.entries(r.sizes).forEach(([k, v]) => console.log('  ' + k.padEnd(14) + v));
