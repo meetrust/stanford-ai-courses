@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="斯坦福 10 门 AI 核心课程学习地图：课程周期表、课程依赖图谱、可筛选的课程档案、对比矩阵与学习路线。">
+<title>斯坦福 AI 课程地图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.16.1/dist/mermaid.min.js"></script>
+<style>
+/* Series: same night palette, type families and track colours as the LLM visual guide.
+   Layout idea for this volume: a wide academic catalogue — top navigation, a "periodic table" of courses
+   as the masthead, a graph with a reading panel, filterable dossier rows, and routes drawn as metro lines. */
+:root {
+  --void: #0a0d14;
+  --panel: #111723;
+  --panel-2: #172031;
+  --ink: #e8edf5;
+  --dim: #a3aec0;
+  --faint: #7d8aa3;
+  --rule: #243049;
+  --rule-2: #33425f;
+  --amber: #ffb347;
+  --ice: #7cc8ff;
+  /* track palette — same hex values as the LLM guide's layer colours */
+  --t1: #7cc8ff;
+  --t2: #a99bff;
+  --t3: #ffd166;
+  --t4: #ff9f5a;
+  --t5: #ff6b6b;
+  --t6: #4fd6a0;
+  --t7: #ff7ad9;
+
+  --font-display: "Chakra Petch", "Noto Sans SC", "PingFang SC", sans-serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Sarasa Mono SC", ui-monospace, Menlo, Consolas, monospace;
+  --fs-2xs: 12px; --fs-xs: 13px; --fs-sm: 14px; --fs-base: 15px; --fs-body: 16px; --fs-lg: 18px; --fs-xl: 22px;
+  --fs-2xl: clamp(26px, 3.4vw, 36px);
+  --fs-hero: clamp(40px, 6vw, 76px);
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 96px;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-pill: 999px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --dur: .28s;
+  --lift: translateY(-2px);
+  --nav-h: 60px;
+  --wrap: 1160px;
+  color-scheme: dark;
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
+body {
+  margin: 0; color: var(--ink); background-color: var(--void);
+  background-image:
+    radial-gradient(1000px 560px at 50% -12%, rgba(255, 179, 71, .08), transparent 62%),
+    radial-gradient(700px 520px at 100% 30%, rgba(255, 122, 217, .045), transparent 60%),
+    radial-gradient(rgba(124, 200, 255, .11) 1px, transparent 1.4px);
+  background-size: auto, auto, 24px 24px;
+  font-family: var(--font-body); font-size: var(--fs-body); line-height: 1.8; text-rendering: optimizeLegibility;
+}
+::selection { background: rgba(255, 179, 71, .35); color: #fff; }
+a { color: var(--ice); text-decoration: none; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
+p, li { max-width: 72ch; }
+strong { color: #fff; }
+code { font-family: var(--font-mono); font-size: .86em; padding: .1em .42em; border-radius: 5px; background: rgba(124, 200, 255, .1); color: #cfe9ff; border: 1px solid rgba(124, 200, 255, .16); }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: fixed; left: var(--sp-4); top: -60px; z-index: 100; padding: var(--sp-2) var(--sp-4); border-radius: var(--r-sm); background: var(--amber); color: #0a0d14; font-weight: 700; transition: top var(--dur) var(--ease); }
+.skip:focus { top: var(--sp-4); }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
+
+@keyframes rise { from { opacity: .25; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .8s var(--ease) both; animation-delay: var(--d, 0s); }
+@keyframes grow { from { transform: scaleX(.1); } to { transform: scaleX(1); } }
+@keyframes flow { to { stroke-dashoffset: -42; } }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 179, 71, .45); } 60% { box-shadow: 0 0 0 8px rgba(255, 179, 71, 0); } }
+
+/* ---------- top navigation ---------- */
+.nav { position: sticky; top: 0; z-index: 50; background: rgba(10, 13, 20, .86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--rule); }
+.nav-in { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-6); }
+.brand { display: flex; flex-direction: column; line-height: 1.25; flex: none; }
+.brand-mark { font-family: var(--font-display); font-weight: 700; letter-spacing: .16em; font-size: 11px; color: var(--amber); }
+.brand-name { font-weight: 900; font-size: var(--fs-base); }
+.nav ol { list-style: none; margin: 0 0 0 auto; padding: 0; display: flex; gap: 2px; }
+.nav ol a { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 var(--sp-3); border-radius: var(--r-sm); color: var(--dim); font-size: var(--fs-sm); white-space: nowrap; transition: color var(--dur), background var(--dur); }
+.nav ol a .n { font-family: var(--font-display); font-size: 11px; color: var(--faint); }
+.nav ol a.active { color: var(--ink); }
+.nav ol a.active .n { color: var(--amber); }
+.nav ol a.active::after { content: ""; position: absolute; left: var(--sp-3); right: var(--sp-3); bottom: 2px; height: 2px; border-radius: 2px; background: var(--amber); }
+.progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; }
+.progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--t1), var(--t2), var(--t3), var(--t4), var(--t5), var(--t6), var(--t7)); }
+
+/* ---------- section scaffolding ---------- */
+main { padding-bottom: var(--sp-9); }
+.section { padding-top: var(--sp-9); }
+.sh { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end; gap: var(--sp-4); padding-bottom: var(--sp-4); margin-bottom: var(--sp-6); border-bottom: 1px solid var(--rule); position: relative; }
+.sh::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 72px; height: 2px; background: var(--amber); }
+.sh-idx { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-sm); letter-spacing: .12em; color: var(--amber); padding-bottom: 6px; }
+.sh h2 { margin: 0; font-size: var(--fs-2xl); font-weight: 900; line-height: 1.2; text-wrap: balance; }
+.sh h2 small { display: block; margin-top: 6px; font-size: var(--fs-base); font-weight: 400; color: var(--dim); }
+.sh-meta { font-family: var(--font-display); font-weight: 600; font-size: var(--fs-2xs); letter-spacing: .18em; color: var(--faint); text-transform: uppercase; padding-bottom: 6px; }
+.tag { font-family: var(--font-display); font-weight: 600; font-size: var(--fs-2xs); letter-spacing: .14em; color: var(--amber); text-transform: uppercase; }
+.panel { border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--panel); }
+.cap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px var(--sp-4); align-items: baseline; padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--rule); font-size: var(--fs-xs); color: var(--dim); }
+.cap b { font-family: var(--font-display); font-weight: 600; letter-spacing: .1em; color: var(--ink); }
+.hover-only { display: none; }
+/* icons: one SVG set, sized per context */
+.i { display: inline-block; width: 1em; height: 1em; flex: none; vertical-align: -0.14em; }
+
+/* ---------- masthead ---------- */
+.mast { padding-top: var(--sp-8); }
+.mast-top { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--sp-6) var(--sp-7); align-items: end; }
+.eyebrow { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-2xs); letter-spacing: .2em; color: var(--amber); text-transform: uppercase; }
+.mast h1 { margin: var(--sp-3) 0 0; font-size: var(--fs-hero); font-weight: 900; line-height: 1.04; letter-spacing: .01em; text-wrap: balance; }
+.mast h1 .accent { background: linear-gradient(90deg, var(--amber), #ffd9a0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mast .lead { margin: 0; font-size: var(--fs-lg); line-height: 1.75; color: #c3ccdb; }
+.datastrip { margin: var(--sp-6) 0 0; display: flex; flex-wrap: wrap; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.datastrip div { flex: 1 1 0; min-width: 120px; padding: var(--sp-4) var(--sp-4) var(--sp-3) 0; display: flex; flex-direction: column; }
+.datastrip div + div { padding-left: var(--sp-4); border-left: 1px solid var(--rule); }
+.datastrip b { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.1; color: #fff; font-variant-numeric: tabular-nums; }
+.datastrip span { font-size: var(--fs-xs); color: var(--dim); }
+
+/* periodic table */
+.ptable-wrap { margin-top: var(--sp-6); }
+.ptable { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto; grid-auto-rows: 124px; gap: 10px; padding: var(--sp-5); }
+.pt-col { grid-row: 1; align-self: end; padding: 0 2px var(--sp-2); border-bottom: 2px solid var(--c); font-size: var(--fs-2xs); line-height: 1.4; }
+.pt-col b { display: block; font-family: var(--font-display); font-size: var(--fs-xs); color: var(--c); letter-spacing: .1em; }
+.pt-col span { color: var(--dim); }
+.el {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 2px;
+  padding: 10px 12px; border-radius: 10px; color: var(--ink);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 16%, #111723), #111723 70%);
+  border: 1px solid color-mix(in srgb, var(--c) 45%, var(--rule));
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.el::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--c); box-shadow: 0 0 10px var(--c); }
+.el-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--font-display); font-size: 11px; color: var(--faint); letter-spacing: .06em; }
+.el-head b { font-weight: 600; color: var(--dim); }
+.el-code { font-family: var(--font-mono); font-weight: 700; font-size: 20px; line-height: 1.15; color: #fff; letter-spacing: -.02em; }
+.el-name { font-size: var(--fs-2xs); color: #c3ccdb; line-height: 1.35; }
+.el-av { display: flex; gap: 8px; }
+.el-av i { display: inline-flex; }
+.el-av .i { width: 13px; height: 13px; }
+.el-av i { font-style: normal; color: #4a5670; }
+.el-av i.on { color: var(--amber); }
+.legend-row { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); padding: var(--sp-3) var(--sp-5); border-top: 1px solid var(--rule); font-size: var(--fs-2xs); color: var(--faint); }
+.legend-row > span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-row .k { display: inline-flex; color: var(--amber); }
+.legend-row .k .i { width: 13px; height: 13px; }
+
+/* ---------- graph ---------- */
+.graph-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--sp-5); align-items: start; }
+#depfig, .dos > *, .line > * { min-width: 0; }
+.graph-body { padding: var(--sp-5) var(--sp-4); overflow-x: auto; overscroll-behavior-x: contain; }
+pre.mermaid { margin: 0; min-height: 520px; text-align: center; background: transparent; font-family: var(--font-mono); font-size: var(--fs-2xs); color: #4f5d77; white-space: pre; }
+.no-mermaid pre.mermaid { text-align: left; color: var(--dim); min-height: 0; }
+#depfig pre.mermaid svg { display: block; margin: 0 auto; max-width: none; height: auto; }
+#depfig .nodeLabel { color: #c9d3e3; font-size: 13px; line-height: 1.5; }
+#depfig .nodeLabel b { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
+#depfig .edgeLabel rect { opacity: 1 !important; fill: #0b1019 !important; }
+#depfig .edgeLabel, #depfig .edgeLabel p, #depfig span.edgeLabel { background: transparent !important; }
+#depfig .edgeLabel p { margin: 0; padding: 2px 9px; border: 1px solid var(--lc, var(--rule-2)); border-radius: 7px; background: #0b1019 !important; color: #eef2f8; font-size: 12.5px; font-weight: 500; line-height: 20px; white-space: nowrap; }
+#depfig .edgeLabel.dash p { border-style: dashed; }
+#depfig .node { cursor: pointer; outline: none; transition: opacity var(--dur) var(--ease), filter var(--dur) var(--ease); }
+#depfig .node:focus-visible rect { stroke: var(--amber) !important; stroke-width: 3px !important; }
+#depfig .flowchart-link, #depfig .sig, #depfig .node .label-container { transition: opacity var(--dur) var(--ease); }
+#depfig .sig { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 19; opacity: .5; animation: flow 1.8s linear infinite; pointer-events: none; }
+#depfig.is-focus .node:not(.on) .label-container { opacity: .3; }
+#depfig.is-focus .node:not(.on) .nodeLabel p { color: color-mix(in srgb, var(--ink) 30%, var(--panel)); }
+#depfig.is-focus .flowchart-link:not(.on), #depfig.is-focus .sig:not(.on) { opacity: .08; }
+#depfig.is-focus g.edgeLabel:not(.on) p { color: color-mix(in srgb, #eef2f8 24%, #0b1019); border-color: color-mix(in srgb, var(--lc, var(--rule-2)) 30%, #0b1019); }
+.swipe { display: none; margin: 0; padding: var(--sp-2) var(--sp-4) 0; font-size: var(--fs-2xs); color: var(--faint); }
+
+.reader { position: sticky; top: calc(var(--nav-h) + 16px); display: flex; flex-direction: column; gap: var(--sp-4); }
+.reader .panel { padding: var(--sp-4); }
+.reader h3 { margin: 0 0 var(--sp-3); font-size: var(--fs-base); display: flex; align-items: center; gap: var(--sp-2); }
+.keys { display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-xs); color: var(--dim); }
+.keys span { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.keys span::before { content: ""; width: 26px; height: 0; border-top: 2px solid var(--dim); }
+.keys span.dash::before { border-top-style: dashed; }
+.trackkeys { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--sp-3); }
+.tk { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); color: var(--c); font-size: var(--fs-2xs); line-height: 1.2; white-space: nowrap; }
+.tk::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.edges { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.edges li { max-width: none; }
+.edges button { width: 100%; display: grid; grid-template-columns: auto auto auto minmax(0, 1fr); gap: 6px; align-items: center; padding: 6px var(--sp-2); border: 0; border-radius: var(--r-sm); background: transparent; color: var(--ink); font: inherit; font-size: var(--fs-xs); text-align: left; cursor: pointer; transition: background var(--dur); }
+.edges .c { font-family: var(--font-mono); font-weight: 600; color: var(--c); }
+.edges .ar { display: inline-flex; color: var(--faint); }
+.edges .ar .i { width: 22px; height: 14px; }
+.edges .why { justify-self: end; color: var(--dim); white-space: nowrap; }
+.edges button.on { background: rgba(255, 179, 71, .1); }
+
+/* phase rail */
+.phases { list-style: none; margin: var(--sp-6) 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-3); position: relative; }
+.phases::before { content: ""; position: absolute; left: 10%; right: 10%; top: 17px; height: 2px; background: linear-gradient(90deg, var(--t1), var(--t2), var(--t3), var(--t4), var(--t7)); opacity: .6; }
+.phases li { position: relative; max-width: none; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); text-align: center; }
+.phases .pn { position: relative; z-index: 1; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--void); border: 2px solid var(--c); color: var(--c); font: 700 var(--fs-xs) var(--font-display); }
+.phases li:last-child .pn { animation: pulse 2.4s ease-out infinite; }
+.phases .pt { font-weight: 700; font-size: var(--fs-sm); }
+.phases .pt small { display: block; font-family: var(--font-display); font-weight: 600; font-size: 11px; letter-spacing: .14em; color: var(--c); }
+.phases .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.phases .hint { font-size: var(--fs-2xs); color: var(--faint); line-height: 1.6; }
+
+/* chips shared by dossiers, phases, routes */
+.rel { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); border: 1px solid color-mix(in srgb, var(--c) 45%, var(--rule)); color: var(--c); font-family: var(--font-mono); font-size: var(--fs-2xs); white-space: nowrap; transition: background var(--dur), border-color var(--dur); }
+.rel.opt { border-style: dashed; }
+
+/* ---------- dossiers ---------- */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-5); }
+.fbtn { min-height: 36px; padding: 0 var(--sp-3); border-radius: var(--r-pill); border: 1px solid var(--rule-2); background: transparent; color: var(--dim); font: 500 var(--fs-xs) var(--font-body); cursor: pointer; transition: color var(--dur), background var(--dur), border-color var(--dur); }
+.fbtn[aria-pressed="true"] { color: #0a0d14; background: var(--amber); border-color: var(--amber); font-weight: 700; }
+.fsep { width: 1px; height: 22px; background: var(--rule-2); margin: 0 var(--sp-1); }
+.fcount { margin-left: auto; font-family: var(--font-display); font-size: var(--fs-xs); color: var(--faint); letter-spacing: .06em; }
+.dossiers { display: flex; flex-direction: column; gap: var(--sp-3); }
+.dos {
+  position: relative; display: grid; grid-template-columns: 230px minmax(0, 1fr) 220px; gap: var(--sp-5);
+  padding: var(--sp-5) var(--sp-5) var(--sp-5) calc(var(--sp-5) + 4px);
+  border-radius: var(--r-lg); border: 1px solid var(--rule); background: var(--panel); overflow: hidden;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease), background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.dos[hidden] { display: none; }
+.dos::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--c); box-shadow: 0 0 16px var(--c); transition: width var(--dur) var(--ease); }
+.dos-id { display: flex; flex-direction: column; gap: var(--sp-2); }
+.dos-no { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-xs); letter-spacing: .1em; color: var(--faint); }
+.dos-id h3 { margin: 0; line-height: 1.15; }
+.dos-id .code { display: block; font-family: var(--font-mono); font-weight: 700; font-size: 34px; color: #fff; letter-spacing: -.02em; }
+.dos-id .cn { display: block; margin-top: 6px; font-size: var(--fs-lg); font-weight: 700; }
+.track-chip { align-self: flex-start; display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); color: var(--c); font-family: var(--font-display); font-weight: 600; font-size: var(--fs-2xs); letter-spacing: .1em; line-height: 1.2; white-space: nowrap; }
+.dos-main { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+.dos-main .desc { margin: 0; font-size: var(--fs-base); line-height: 1.75; color: #c3ccdb; }
+.specs { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.specs div { display: flex; gap: var(--sp-2); align-items: center; min-height: 26px; padding: 0 var(--sp-3); line-height: 1.2; border-radius: var(--r-sm); background: rgba(0, 0, 0, .25); border: 1px solid var(--rule); font-size: var(--fs-xs); }
+.specs dt { color: var(--faint); font-family: var(--font-display); letter-spacing: .08em; font-size: var(--fs-2xs); }
+.specs dd { margin: 0; }
+.rels { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px var(--sp-3); align-items: center; font-size: var(--fs-xs); }
+.rels dt { color: var(--faint); font-family: var(--font-display); letter-spacing: .08em; font-size: var(--fs-2xs); }
+.rels dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; color: var(--faint); }
+.dos-act { display: flex; flex-direction: column; gap: var(--sp-2); justify-content: center; }
+.btn { display: flex; align-items: center; gap: var(--sp-2); min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-md); border: 1px solid var(--rule-2); background: rgba(255, 255, 255, .03); color: var(--ink); font-size: var(--fs-sm); font-weight: 600; line-height: 1.3; transition: transform var(--dur) var(--ease), background var(--dur), border-color var(--dur); }
+.btn .ic { display: inline-flex; width: 20px; flex: none; color: var(--faint); }
+.btn .ic .i { width: 15px; height: 15px; }
+.btn .lbl { display: flex; flex-direction: column; min-width: 0; }
+.btn .lbl small { font-weight: 400; font-size: 11px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn .ext { display: inline-flex; margin-left: auto; color: var(--faint); }
+.btn .ext .i { width: 13px; height: 13px; }
+.btn.video { border-color: color-mix(in srgb, var(--amber) 55%, transparent); background: color-mix(in srgb, var(--amber) 11%, transparent); color: #ffd59a; }
+.btn.video .ic, .btn.video .ext { color: var(--amber); }
+.btn.off { border-style: dashed; border-color: var(--rule); background: transparent; color: var(--faint); font-weight: 500; cursor: default; }
+.btn.off .ic { color: #4a5670; }
+.empty { display: none; padding: var(--sp-6); text-align: center; color: var(--faint); border: 1px dashed var(--rule-2); border-radius: var(--r-lg); }
+.empty.show { display: block; }
+
+/* ---------- matrix ---------- */
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); line-height: 1.6; }
+thead th { text-align: left; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-2xs); letter-spacing: .1em; color: var(--amber); background: var(--panel-2); padding: var(--sp-3) 14px; white-space: nowrap; border-bottom: 1px solid var(--rule); }
+tbody td, tbody th { padding: var(--sp-3) 14px; border-bottom: 1px solid rgba(36, 48, 73, .7); text-align: left; vertical-align: middle; white-space: nowrap; font-variant-numeric: tabular-nums; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+tbody tr { transition: background var(--dur); }
+tbody th { font-family: var(--font-mono); font-weight: 700; color: var(--c); position: sticky; left: 0; z-index: 1; background: var(--panel); box-shadow: 1px 0 0 var(--rule); }
+thead th:first-child { position: sticky; left: 0; z-index: 2; }
+td.units { min-width: 0; }
+.ub { display: inline-block; vertical-align: middle; width: 72px; height: 8px; margin-right: var(--sp-2); border-radius: 4px; background: #1a2335; overflow: hidden; }
+.ub i { display: block; height: 100%; width: calc(var(--v) * 1%); background: var(--c); border-radius: 4px; transform-origin: left; animation: grow 1s var(--ease) both; }
+.st { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); font-size: var(--fs-2xs); line-height: 1.2; border: 1px solid; white-space: nowrap; }
+.st .i { width: 12px; height: 12px; }
+a.st.v { color: #ffd59a; border-color: color-mix(in srgb, var(--amber) 50%, transparent); }
+a.st.g { color: var(--ice); border-color: color-mix(in srgb, var(--ice) 45%, transparent); }
+.st.no { color: #56637b; border-color: var(--rule); border-style: dashed; }
+.lvl { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill); font-size: var(--fs-2xs); line-height: 1.2; white-space: nowrap; border: 1px solid var(--c); color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
+.mfoot { padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--rule); font-size: var(--fs-2xs); color: var(--faint); }
+
+/* ---------- metro routes ---------- */
+.metro { display: flex; flex-direction: column; gap: var(--sp-4); }
+.line { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: var(--sp-5); align-items: center; padding: var(--sp-5); transition: border-color var(--dur) var(--ease); }
+.line-head .tag { color: var(--c); }
+.line-head h3 { margin: 2px 0 4px; font-size: var(--fs-lg); line-height: 1.35; }
+.line-head p { margin: 0; font-size: var(--fs-xs); color: var(--dim); line-height: 1.65; }
+.stops { list-style: none; margin: 0; padding: 0; display: flex; position: relative; }
+.stops::before { content: ""; position: absolute; left: 20px; right: 20px; top: 11px; height: 4px; border-radius: 4px; background: var(--c); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 60%, transparent); }
+.stops li { flex: 1 1 0; max-width: none; position: relative; display: flex; justify-content: center; }
+.stops a { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; color: var(--ink); padding: 0 2px; border-radius: var(--r-sm); }
+.stops i { width: 26px; height: 26px; border-radius: 50%; background: var(--void); border: 5px solid var(--s); box-shadow: 0 0 0 3px var(--panel); transition: transform var(--dur) var(--ease); }
+.stops li.opt i { border-style: dotted; }
+.stops b { font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: 700; color: var(--s); line-height: 1.2; }
+.stops small { font-size: 11px; color: var(--faint); line-height: 1.3; }
+
+/* ---------- notes ---------- */
+.notes { margin: 0; padding: var(--sp-5) var(--sp-5) var(--sp-5) calc(var(--sp-5) + 1.2em); display: flex; flex-direction: column; gap: var(--sp-2); font-size: var(--fs-sm); color: #c3ccdb; }
+.notes li::marker { color: var(--amber); }
+.end { margin-top: var(--sp-5); font-size: var(--fs-xs); color: var(--faint); }
+.totop { position: fixed; right: var(--sp-4); bottom: var(--sp-4); z-index: 40; width: 44px; height: 44px; border-radius: var(--r-md); border: 1px solid var(--rule); background: rgba(17, 23, 35, .92); color: var(--amber); cursor: pointer; display: grid; place-items: center; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity var(--dur), transform var(--dur) var(--ease), border-color var(--dur); }
+.totop .i { width: 18px; height: 18px; }
+.totop.show { opacity: 1; pointer-events: auto; transform: none; }
+
+/* ---------- hover: pointer devices only ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .hover-only { display: inline; }
+  .nav ol a:hover { color: var(--ink); background: rgba(255, 255, 255, .04); }
+  .el:hover { transform: translateY(-3px); border-color: var(--c); box-shadow: 0 16px 34px -18px var(--c); }
+  .edges button:hover { background: rgba(255, 255, 255, .04); }
+  .rel:hover { background: color-mix(in srgb, var(--c) 14%, transparent); border-color: var(--c); }
+  .fbtn:not([aria-pressed="true"]):hover { color: var(--ink); border-color: var(--amber); }
+  .dos:hover { transform: translateX(4px); border-color: color-mix(in srgb, var(--c) 45%, var(--rule)); background: linear-gradient(90deg, color-mix(in srgb, var(--c) 7%, var(--panel)), var(--panel) 45%); box-shadow: 0 22px 46px -34px var(--c); }
+  .dos:hover::before { width: 6px; }
+  .btn:not(.off):hover { transform: var(--lift); border-color: var(--ice); background: rgba(124, 200, 255, .08); }
+  .btn.video:hover { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 20%, transparent); }
+  tbody tr:hover { background: rgba(124, 200, 255, .05); }
+  tbody tr:hover th { background: #141b28; }
+  a.st:hover { background: rgba(255, 255, 255, .05); }
+  .line:hover { border-color: color-mix(in srgb, var(--c) 45%, var(--rule)); }
+  .stops a:hover i { transform: scale(1.18); }
+  #depfig .node:hover .label-container { filter: brightness(1.2); }
+  .totop:hover { border-color: var(--amber); }
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) {
+  .graph-grid { grid-template-columns: minmax(0, 1fr); }
+  .reader { position: static; display: grid; grid-template-columns: 1fr 1fr; }
+  .dos { grid-template-columns: 200px minmax(0, 1fr); }
+  .dos-act { grid-column: 2; flex-direction: row; flex-wrap: wrap; }
+  .dos-act .btn { flex: 1 1 200px; }
+}
+@media (max-width: 900px) {
+  .nav ol { margin-left: 0; overflow-x: auto; scrollbar-width: none; }
+  .nav ol::-webkit-scrollbar { display: none; }
+  .nav-in { height: auto; flex-direction: column; align-items: stretch; gap: 0; padding-top: var(--sp-2); }
+  :root { --nav-h: 84px; }
+  .mast-top { grid-template-columns: 1fr; }
+  .ptable { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: 112px; padding: var(--sp-4); }
+  .pt-col { display: none; }
+  .el { grid-column: auto !important; grid-row: auto !important; }
+  .line { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  :root { --fs-body: 15px; --fs-lg: 17px; --fs-xl: 20px; }
+  .section { padding-top: 72px; }
+  .sh { grid-template-columns: 1fr; gap: 4px; }
+  .sh-meta { display: none; }
+  .datastrip div { min-width: 33%; flex: 1 1 33%; }
+  .datastrip div:nth-child(4) { border-left: 0; padding-left: 0; }
+  .reader { grid-template-columns: minmax(0, 1fr); }
+  .swipe { display: block; }
+  .phases { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .phases::before { left: 17px; right: auto; top: 18px; bottom: 18px; width: 2px; height: auto; background: linear-gradient(var(--t1), var(--t2), var(--t3), var(--t4), var(--t7)); }
+  .phases li { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: start; text-align: left; column-gap: var(--sp-3); row-gap: 4px; }
+  .phases li > :not(.pn) { grid-column: 2; }
+  .phases .pn { grid-row: 1 / span 3; }
+  .phases .chips { justify-content: flex-start; }
+  .dos { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); padding: var(--sp-4) var(--sp-4) var(--sp-4) calc(var(--sp-4) + 4px); }
+  .dos-act { grid-column: auto; flex-direction: column; }
+  .dos-act .btn { flex: none; }
+  .dos-id .code { font-size: 30px; }
+  .fcount { margin-left: 0; flex-basis: 100%; }
+  .fsep { display: none; }
+  .stops { flex-direction: column; gap: var(--sp-3); }
+  .stops::before { left: 11px; right: auto; top: 12px; bottom: 12px; width: 4px; height: auto; }
+  .stops li { justify-content: flex-start; }
+  .stops a { flex-direction: row; text-align: left; gap: var(--sp-3); }
+  .stops a span { display: flex; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.6 2.7v10.6L13.2 8z" fill="currentColor"/></symbol>
+  <symbol id="i-code" viewBox="0 0 16 16"><path d="M5.6 4.2 1.8 8l3.8 3.8M10.4 4.2 14.2 8l-3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 16 16"><path d="M4.8 11.2 11 5M6.2 5H11v4.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-up" viewBox="0 0 16 16"><path d="M8 13V3.6M3.8 7.6 8 3.4l4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-to" viewBox="0 0 24 16"><path d="M2 8h17.5M15.5 3.8 19.7 8l-4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-to-opt" viewBox="0 0 24 16"><path d="M2 8h15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-dasharray="3 3"/><path d="M15.5 3.8 19.7 8l-4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <div class="brand"><span class="brand-mark">STANFORD · AI CORE · 10</span><span class="brand-name">斯坦福 AI 课程地图</span></div>
+    <nav aria-label="页面导航">
+      <ol>
+        <li><a href="#table"><span class="n">00</span>周期表</a></li>
+        <li><a href="#graph"><span class="n">01</span>依赖图谱</a></li>
+        <li><a href="#dossier"><span class="n">02</span>课程档案</a></li>
+        <li><a href="#matrix"><span class="n">03</span>对比矩阵</a></li>
+        <li><a href="#routes"><span class="n">04</span>学习路线</a></li>
+        <li><a href="#notes"><span class="n">05</span>说明</a></li>
+      </ol>
+    </nav>
+  </div>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+</header>
+
+<main id="main" tabindex="-1">
+
+  <!-- ============ 00 MASTHEAD + PERIODIC TABLE ============ -->
+  <section class="wrap mast" id="table">
+    <div class="mast-top">
+      <div>
+        <p class="eyebrow rise">Stanford · AI Core Courses · 10</p>
+        <h1 class="rise" style="--d:.06s">斯坦福 AI <span class="accent">核心课程</span></h1>
+      </div>
+      <p class="lead rise" style="--d:.12s">从 CS221 的搜索与推理出发，经过机器学习与深度学习打地基，再分叉进入语言、决策与生成三个方向，最后抵达大语言模型前沿。下面的课程周期表按知识轨道排列，越靠后越前沿。</p>
+    </div>
+    <div class="datastrip rise" style="--d:.18s">
+      <div><b>10</b><span>门核心课程</span></div>
+      <div><b>219</b><span>讲 / 视频合计</span></div>
+      <div><b>6</b><span>门有公开视频</span></div>
+      <div><b>6</b><span>个 GitHub 仓库（含笔记与速查表）</span></div>
+      <div><b>7</b><span>条知识轨道</span></div>
+    </div>
+
+    <figure class="panel ptable-wrap rise" style="--d:.24s; margin-left: 0; margin-right: 0; margin-bottom: 0">
+      <figcaption class="cap"><b>FIG.00 · AI 课程周期表</b><span>按知识轨道排列，越靠后越前沿 · 点击方块查看课程档案</span></figcaption>
+      <div class="ptable">
+        <div class="pt-col" style="--c: var(--t1); grid-column: 1"><b>T1</b><span>入口</span></div>
+        <div class="pt-col" style="--c: var(--t2); grid-column: 2"><b>T2</b><span>机器学习</span></div>
+        <div class="pt-col" style="--c: var(--t3); grid-column: 3"><b>T3</b><span>深度学习</span></div>
+        <div class="pt-col" style="--c: var(--t4); grid-column: 4"><b>T4</b><span>自然语言处理</span></div>
+        <div class="pt-col" style="--c: var(--t5); grid-column: 5"><b>T5</b><span>强化学习</span></div>
+        <div class="pt-col" style="--c: var(--t6); grid-column: 6"><b>T6</b><span>生成模型</span></div>
+        <div class="pt-col" style="--c: var(--t7); grid-column: 7"><b>T7</b><span>大模型前沿</span></div>
+
+        <a class="el" href="#c-cs221" style="--c: var(--t1); grid-column: 1; grid-row: 2"><span class="el-head"><b>01</b>20 讲</span><span class="el-code">CS221</span><span class="el-name">人工智能</span><span class="el-av"><i class="on" title="有公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">有公开视频</span></i><i class="on" title="有代码仓库"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">有代码仓库</span></i></span></a>
+        <a class="el" href="#c-cs229" style="--c: var(--t2); grid-column: 2; grid-row: 3"><span class="el-head"><b>02</b>20 讲</span><span class="el-code">CS229</span><span class="el-name">机器学习</span><span class="el-av"><i title="暂无公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">暂无公开视频</span></i><i title="暂无代码仓库"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">暂无代码仓库</span></i></span></a>
+        <a class="el" href="#c-cs229m" style="--c: var(--t2); grid-column: 2; grid-row: 4"><span class="el-head"><b>04</b>20 讲</span><span class="el-code">CS229M</span><span class="el-name">机器学习理论</span><span class="el-av"><i title="暂无公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">暂无公开视频</span></i><i title="暂无代码仓库"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">暂无代码仓库</span></i></span></a>
+        <a class="el" href="#c-cs230" style="--c: var(--t3); grid-column: 3; grid-row: 4"><span class="el-head"><b>05</b>10 讲</span><span class="el-code">CS230</span><span class="el-name">深度学习</span><span class="el-av"><i class="on" title="有公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">有公开视频</span></i><i class="on" title="有代码仓库"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">有代码仓库</span></i></span></a>
+        <a class="el" href="#c-cs234" style="--c: var(--t5); grid-column: 5; grid-row: 4"><span class="el-head"><b>06</b>16 视频</span><span class="el-code">CS234</span><span class="el-name">强化学习</span><span class="el-av"><i title="暂无公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">暂无公开视频</span></i><i title="暂无代码仓库"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">暂无代码仓库</span></i></span></a>
+        <a class="el" href="#c-cs224n" style="--c: var(--t4); grid-column: 4; grid-row: 5"><span class="el-head"><b>08</b>23 视频</span><span class="el-code">CS224N</span><span class="el-name">深度学习 NLP</span><span class="el-av"><i class="on" title="有公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">有公开视频</span></i><i title="暂无代码仓库"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">暂无代码仓库</span></i></span></a>
+        <a class="el" href="#c-cs236" style="--c: var(--t6); grid-column: 6; grid-row: 5"><span class="el-head"><b>10</b>18 视频</span><span class="el-code">CS236</span><span class="el-name">深度生成模型</span><span class="el-av"><i title="暂无公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">暂无公开视频</span></i><i class="on" title="有课程笔记"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">有课程笔记</span></i></span></a>
+        <a class="el" href="#c-cs224u" style="--c: var(--t4); grid-column: 4; grid-row: 6"><span class="el-head"><b>07</b>63 视频</span><span class="el-code">CS224U</span><span class="el-name">自然语言理解</span><span class="el-av"><i class="on" title="有公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">有公开视频</span></i><i class="on" title="有代码仓库"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">有代码仓库</span></i></span></a>
+        <a class="el" href="#c-cme295" style="--c: var(--t7); grid-column: 7; grid-row: 6"><span class="el-head"><b>09</b>12 视频</span><span class="el-code">CME295</span><span class="el-name">Transformer 与大语言模型</span><span class="el-av"><i class="on" title="有公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">有公开视频</span></i><i class="on" title="有速查表"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">有速查表</span></i></span></a>
+        <a class="el" href="#c-cs336" style="--c: var(--t7); grid-column: 7; grid-row: 7"><span class="el-head"><b>03</b>17 视频</span><span class="el-code">CS336</span><span class="el-name">从零构建语言模型</span><span class="el-av"><i class="on" title="有公开视频"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg><span class="sr-only">有公开视频</span></i><i class="on" title="有代码仓库"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg><span class="sr-only">有代码仓库</span></i></span></a>
+      </div>
+      <div class="legend-row"><span>左上角编号 = 原始清单序号</span><span><span class="k"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span>有公开视频</span><span><span class="k"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span>有代码仓库、笔记或速查表</span><span>灰色符号表示暂无</span></div>
+    </figure>
+  </section>
+
+  <!-- ============ 01 GRAPH ============ -->
+  <section class="wrap section" id="graph">
+    <header class="sh">
+      <span class="sh-idx">§ 01</span>
+      <h2>课程依赖图谱<small>从上到下是推荐顺序；每条连线上的标签说明前一门课为后一门提供了什么。</small></h2>
+      <span class="sh-meta">Learning Graph</span>
+    </header>
+
+    <div class="graph-grid">
+      <figure class="panel" id="depfig" style="margin: 0">
+        <figcaption class="cap"><b>FIG.01 · 课程依赖图谱</b><span><span class="hover-only">悬停高亮依赖链 · </span>点击节点查看课程档案</span></figcaption>
+        <p class="swipe">图按原尺寸显示，左右滑动查看全图</p>
+        <div class="graph-body">
+<pre class="mermaid" aria-label="10 门课程的学习依赖图，文字版见右侧连线说明">
+flowchart TB
+    CS221("<b>CS221</b><br/>人工智能")
+    CS229("<b>CS229</b><br/>机器学习")
+    CS229M("<b>CS229M</b><br/>机器学习理论")
+    CS230("<b>CS230</b><br/>深度学习")
+    CS234("<b>CS234</b><br/>强化学习")
+    CS224N("<b>CS224N</b><br/>深度学习 NLP")
+    CS236("<b>CS236</b><br/>深度生成模型")
+    CS224U("<b>CS224U</b><br/>自然语言理解")
+    CME295("<b>CME295</b><br/>Transformer 与大语言模型")
+    CS336("<b>CS336</b><br/>从零构建语言模型")
+    CS221 -->|"ML 基础"| CS229
+    CS229 -->|"神经网络"| CS230
+    CS229 -.->|"理论深化"| CS229M
+    CS229 -->|"RL 分支"| CS234
+    CS230 -->|"序列建模"| CS224N
+    CS230 -->|"生成建模"| CS236
+    CS229M -.->|"概率与理论"| CS236
+    CS224N -->|"NLU 项目"| CS224U
+    CS224N -->|"Transformer"| CME295
+    CME295 -->|"从概念到实现"| CS336
+    CS234 -.->|"RLHF 与对齐"| CS336
+    classDef t1 fill:#0f2536,stroke:#7cc8ff,stroke-width:2px,color:#e8edf5
+    classDef t2 fill:#1e1a3a,stroke:#a99bff,stroke-width:2px,color:#e8edf5
+    classDef t2opt fill:#1e1a3a,stroke:#a99bff,stroke-width:2px,stroke-dasharray:5 4,color:#e8edf5
+    classDef t3 fill:#2e2810,stroke:#ffd166,stroke-width:2px,color:#e8edf5
+    classDef t4 fill:#33200f,stroke:#ff9f5a,stroke-width:2px,color:#e8edf5
+    classDef t5 fill:#361518,stroke:#ff6b6b,stroke-width:2px,color:#e8edf5
+    classDef t6 fill:#0f2e24,stroke:#4fd6a0,stroke-width:2px,color:#e8edf5
+    classDef t7 fill:#351530,stroke:#ff7ad9,stroke-width:2px,color:#e8edf5
+    class CS221 t1
+    class CS229 t2
+    class CS229M t2opt
+    class CS230 t3
+    class CS224N,CS224U t4
+    class CS234 t5
+    class CS236 t6
+    class CME295,CS336 t7
+    linkStyle 0,2 stroke:#a99bff,stroke-width:2px
+    linkStyle 1 stroke:#ffd166,stroke-width:2px
+    linkStyle 3 stroke:#ff6b6b,stroke-width:2px
+    linkStyle 4,7 stroke:#ff9f5a,stroke-width:2px
+    linkStyle 5,6 stroke:#4fd6a0,stroke-width:2px
+    linkStyle 8,9,10 stroke:#ff7ad9,stroke-width:2px
+</pre>
+        </div>
+      </figure>
+
+      <aside class="reader" aria-label="读图说明">
+        <div class="panel">
+          <h3><span class="tag">KEY</span>图例</h3>
+          <div class="keys"><span>主线 · 建议按顺序学</span><span class="dash">选修或延伸</span></div>
+          <div class="trackkeys">
+            <span class="tk" style="--c: var(--t1)">T1 入口</span><span class="tk" style="--c: var(--t2)">T2 机器学习</span><span class="tk" style="--c: var(--t3)">T3 深度学习</span><span class="tk" style="--c: var(--t4)">T4 自然语言处理</span><span class="tk" style="--c: var(--t5)">T5 强化学习</span><span class="tk" style="--c: var(--t6)">T6 生成模型</span><span class="tk" style="--c: var(--t7)">T7 大模型前沿</span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3><span class="tag">EDGES</span>连线说明</h3>
+          <ol class="edges" id="edgeList">
+            <li><button type="button" data-f="CS221" data-t="CS229"><span class="c" style="--c: var(--t1)">CS221</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to"/></svg><span class="sr-only">到</span></span><span class="c" style="--c: var(--t2)">CS229</span><span class="why">ML 基础</span></button></li>
+            <li><button type="button" data-f="CS229" data-t="CS230"><span class="c" style="--c: var(--t2)">CS229</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to"/></svg><span class="sr-only">到</span></span><span class="c" style="--c: var(--t3)">CS230</span><span class="why">神经网络</span></button></li>
+            <li class="opt"><button type="button" data-f="CS229" data-t="CS229M"><span class="c" style="--c: var(--t2)">CS229</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to-opt"/></svg><span class="sr-only">选修到</span></span><span class="c" style="--c: var(--t2)">CS229M</span><span class="why">理论深化</span></button></li>
+            <li><button type="button" data-f="CS229" data-t="CS234"><span class="c" style="--c: var(--t2)">CS229</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to"/></svg><span class="sr-only">到</span></span><span class="c" style="--c: var(--t5)">CS234</span><span class="why">RL 分支</span></button></li>
+            <li><button type="button" data-f="CS230" data-t="CS224N"><span class="c" style="--c: var(--t3)">CS230</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to"/></svg><span class="sr-only">到</span></span><span class="c" style="--c: var(--t4)">CS224N</span><span class="why">序列建模</span></button></li>
+            <li><button type="button" data-f="CS230" data-t="CS236"><span class="c" style="--c: var(--t3)">CS230</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to"/></svg><span class="sr-only">到</span></span><span class="c" style="--c: var(--t6)">CS236</span><span class="why">生成建模</span></button></li>
+            <li class="opt"><button type="button" data-f="CS229M" data-t="CS236"><span class="c" style="--c: var(--t2)">CS229M</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to-opt"/></svg><span class="sr-only">选修到</span></span><span class="c" style="--c: var(--t6)">CS236</span><span class="why">概率与理论</span></button></li>
+            <li><button type="button" data-f="CS224N" data-t="CS224U"><span class="c" style="--c: var(--t4)">CS224N</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to"/></svg><span class="sr-only">到</span></span><span class="c" style="--c: var(--t4)">CS224U</span><span class="why">NLU 项目</span></button></li>
+            <li><button type="button" data-f="CS224N" data-t="CME295"><span class="c" style="--c: var(--t4)">CS224N</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to"/></svg><span class="sr-only">到</span></span><span class="c" style="--c: var(--t7)">CME295</span><span class="why">Transformer</span></button></li>
+            <li><button type="button" data-f="CME295" data-t="CS336"><span class="c" style="--c: var(--t7)">CME295</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to"/></svg><span class="sr-only">到</span></span><span class="c" style="--c: var(--t7)">CS336</span><span class="why">从概念到实现</span></button></li>
+            <li class="opt"><button type="button" data-f="CS234" data-t="CS336"><span class="c" style="--c: var(--t5)">CS234</span><span class="ar"><svg class="i" aria-hidden="true"><use href="#i-to-opt"/></svg><span class="sr-only">选修到</span></span><span class="c" style="--c: var(--t7)">CS336</span><span class="why">RLHF 与对齐</span></button></li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+
+    <ol class="phases" aria-label="五个学习阶段">
+      <li style="--c: var(--t1)"><span class="pn">P1</span><span class="pt"><small>ENTRY</small>入门</span><span class="chips"><a class="rel" href="#c-cs221" style="--c: var(--t1)">CS221</a></span><span class="hint">建立“建模、推理、学习”的整体框架</span></li>
+      <li style="--c: var(--t2)"><span class="pn">P2</span><span class="pt"><small>ML</small>机器学习</span><span class="chips"><a class="rel" href="#c-cs229" style="--c: var(--t2)">CS229</a><a class="rel opt" href="#c-cs229m" style="--c: var(--t2)">CS229M</a></span><span class="hint">经典主干；做研究再补理论</span></li>
+      <li style="--c: var(--t3)"><span class="pn">P3</span><span class="pt"><small>DL</small>深度学习</span><span class="chips"><a class="rel" href="#c-cs230" style="--c: var(--t3)">CS230</a></span><span class="hint">神经网络与项目方法论</span></li>
+      <li style="--c: var(--t4)"><span class="pn">P4</span><span class="pt"><small>BRANCH</small>方向分叉</span><span class="chips"><a class="rel" href="#c-cs224n" style="--c: var(--t4)">CS224N</a><a class="rel" href="#c-cs224u" style="--c: var(--t4)">CS224U</a><a class="rel" href="#c-cs234" style="--c: var(--t5)">CS234</a><a class="rel" href="#c-cs236" style="--c: var(--t6)">CS236</a></span><span class="hint">语言、决策、生成，可并行</span></li>
+      <li style="--c: var(--t7)"><span class="pn">P5</span><span class="pt"><small>FRONTIER</small>大模型前沿</span><span class="chips"><a class="rel" href="#c-cme295" style="--c: var(--t7)">CME295</a><a class="rel" href="#c-cs336" style="--c: var(--t7)">CS336</a></span><span class="hint">先看全景，再从零实现</span></li>
+    </ol>
+  </section>
+
+  <!-- ============ 02 DOSSIERS ============ -->
+  <section class="wrap section" id="dossier">
+    <header class="sh">
+      <span class="sh-idx">§ 02</span>
+      <h2>课程档案<small>按轨道或资源筛选；虚线按钮表示暂无公开链接。</small></h2>
+      <span class="sh-meta">Course Dossiers</span>
+    </header>
+
+    <div class="filters" role="toolbar" aria-label="筛选课程">
+      <button class="fbtn" type="button" data-group="all" aria-pressed="true">全部</button>
+      <button class="fbtn" type="button" data-group="base" aria-pressed="false">地基 T1–T3</button>
+      <button class="fbtn" type="button" data-group="t4" aria-pressed="false">自然语言处理</button>
+      <button class="fbtn" type="button" data-group="t5" aria-pressed="false">强化学习</button>
+      <button class="fbtn" type="button" data-group="t6" aria-pressed="false">生成模型</button>
+      <button class="fbtn" type="button" data-group="t7" aria-pressed="false">大模型前沿</button>
+      <span class="fsep" aria-hidden="true"></span>
+      <button class="fbtn" type="button" data-need="video" aria-pressed="false">有公开视频</button>
+      <button class="fbtn" type="button" data-need="code" aria-pressed="false">有代码仓库</button>
+      <span class="fcount" id="fcount" aria-live="polite">显示 10 / 10</span>
+    </div>
+
+    <div class="dossiers" id="dossiers">
+
+      <article class="dos" id="c-cs221" data-group="base" data-video="1" data-code="1" style="--c: var(--t1)">
+        <div class="dos-id"><span class="dos-no">NO.01</span><h3><span class="code">CS221</span><span class="cn">人工智能</span></h3><span class="track-chip">T1 · 入口</span></div>
+        <div class="dos-main">
+          <p class="desc">AI 通识入口：搜索、马尔可夫决策过程、博弈、约束满足、贝叶斯网络与逻辑，再配上机器学习基础，建立“建模、推理、学习”的整体框架。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2025 秋</dd></div><div><dt>UNITS</dt><dd>20 讲</dd></div><div><dt>NOTE</dt><dd>可执行讲义</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd>无，从这里开始</dd><dt>后续</dt><dd><a class="rel" href="#c-cs229" style="--c: var(--t2)">CS229</a></dd></dl>
+        </div>
+        <div class="dos-act">
+          <a class="btn video" href="https://www.youtube.com/playlist?list=PLoROMvodv4rMeDqwS1yFl3j3sR_-MQNEN" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>YouTube 播放列表</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+          <a class="btn" href="https://github.com/stanford-cs221/autumn2025-lectures" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">GitHub 仓库<small>可执行讲义</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cs229" data-group="base" data-video="0" data-code="0" style="--c: var(--t2)">
+        <div class="dos-id"><span class="dos-no">NO.02</span><h3><span class="code">CS229</span><span class="cn">机器学习</span></h3><span class="track-chip">T2 · 机器学习</span></div>
+        <div class="dos-main">
+          <p class="desc">经典机器学习主干：线性与逻辑回归、广义线性模型、生成式学习、核方法与 SVM、神经网络入门，以及聚类、EM、PCA 等无监督方法。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2026 春</dd></div><div><dt>UNITS</dt><dd>20 讲</dd></div><div><dt>NOTE</dt><dd>经典 ML 课程</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cs221" style="--c: var(--t1)">CS221</a></dd><dt>后续</dt><dd><a class="rel" href="#c-cs230" style="--c: var(--t3)">CS230</a><a class="rel" href="#c-cs234" style="--c: var(--t5)">CS234</a><a class="rel opt" href="#c-cs229m" style="--c: var(--t2)">CS229M</a></dd></dl>
+        </div>
+        <div class="dos-act">
+          <span class="btn off" aria-disabled="true"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>暂无公开链接</small></span></span>
+          <span class="btn off" aria-disabled="true"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">代码仓库<small>暂无公开链接</small></span></span>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cs336" data-group="t7" data-video="1" data-code="1" style="--c: var(--t7)">
+        <div class="dos-id"><span class="dos-no">NO.03</span><h3><span class="code">CS336</span><span class="cn">从零构建语言模型</span></h3><span class="track-chip">T7 · 大模型前沿</span></div>
+        <div class="dos-main">
+          <p class="desc">亲手走完语言模型全流程：分词器、Transformer 架构、GPU 与 kernel、并行训练、scaling laws、数据处理、推理与对齐。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2025</dd></div><div><dt>UNITS</dt><dd>17 视频</dd></div><div><dt>NOTE</dt><dd>代码化讲义</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cme295" style="--c: var(--t7)">CME295</a><a class="rel opt" href="#c-cs234" style="--c: var(--t5)">CS234</a></dd><dt>后续</dt><dd>无，路线终点</dd></dl>
+        </div>
+        <div class="dos-act">
+          <a class="btn video" href="https://www.youtube.com/playlist?list=PLoROMvodv4rOY23Y0BoGoBGgQ1zmU_MT_" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>YouTube 播放列表</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+          <a class="btn" href="https://github.com/stanford-cs336/lectures" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">GitHub 仓库<small>代码化讲义</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cs229m" data-group="base" data-video="0" data-code="0" style="--c: var(--t2)">
+        <div class="dos-id"><span class="dos-no">NO.04</span><h3><span class="code">CS229M</span><span class="cn">机器学习理论</span></h3><span class="track-chip">T2 · 机器学习 · 选修</span></div>
+        <div class="dos-main">
+          <p class="desc">机器学习的数学理论：泛化界、一致收敛、Rademacher 复杂度、隐式正则化，以及深度学习理论中的开放问题。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2021 秋</dd></div><div><dt>UNITS</dt><dd>20 讲</dd></div><div><dt>NOTE</dt><dd>ML 数学理论</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cs229" style="--c: var(--t2)">CS229</a></dd><dt>后续</dt><dd><a class="rel opt" href="#c-cs236" style="--c: var(--t6)">CS236</a></dd></dl>
+        </div>
+        <div class="dos-act">
+          <span class="btn off" aria-disabled="true"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>暂无公开链接</small></span></span>
+          <span class="btn off" aria-disabled="true"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">代码仓库<small>暂无公开链接</small></span></span>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cs230" data-group="base" data-video="1" data-code="1" style="--c: var(--t3)">
+        <div class="dos-id"><span class="dos-no">NO.05</span><h3><span class="code">CS230</span><span class="cn">深度学习</span></h3><span class="track-chip">T3 · 深度学习</span></div>
+        <div class="dos-main">
+          <p class="desc">深度学习的系统入门：神经网络、优化与正则化、卷积网络、序列模型，以及深度学习项目从数据到部署的完整策略。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2025 秋</dd></div><div><dt>UNITS</dt><dd>10 讲</dd></div><div><dt>NOTE</dt><dd>吴恩达主讲，示例代码</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cs229" style="--c: var(--t2)">CS229</a></dd><dt>后续</dt><dd><a class="rel" href="#c-cs224n" style="--c: var(--t4)">CS224N</a><a class="rel" href="#c-cs236" style="--c: var(--t6)">CS236</a></dd></dl>
+        </div>
+        <div class="dos-act">
+          <a class="btn video" href="https://cs230.stanford.edu/lecture" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>课程官网</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+          <a class="btn" href="https://github.com/cs230-stanford/cs230-code-examples" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">GitHub 仓库<small>PyTorch · TensorFlow</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cs234" data-group="t5" data-video="0" data-code="0" style="--c: var(--t5)">
+        <div class="dos-id"><span class="dos-no">NO.06</span><h3><span class="code">CS234</span><span class="cn">强化学习</span></h3><span class="track-chip">T5 · 强化学习</span></div>
+        <div class="dos-main">
+          <p class="desc">强化学习核心算法：MDP 与动态规划、蒙特卡洛与时序差分、Q-learning、策略梯度与 Actor-Critic、探索与离线强化学习。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2024</dd></div><div><dt>UNITS</dt><dd>16 视频</dd></div><div><dt>NOTE</dt><dd>RL 核心算法</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cs229" style="--c: var(--t2)">CS229</a></dd><dt>后续</dt><dd><a class="rel opt" href="#c-cs336" style="--c: var(--t7)">CS336</a></dd></dl>
+        </div>
+        <div class="dos-act">
+          <span class="btn off" aria-disabled="true"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>暂无公开链接</small></span></span>
+          <span class="btn off" aria-disabled="true"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">代码仓库<small>暂无公开链接</small></span></span>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cs224u" data-group="t4" data-video="1" data-code="1" style="--c: var(--t4)">
+        <div class="dos-id"><span class="dos-no">NO.07</span><h3><span class="code">CS224U</span><span class="cn">自然语言理解</span></h3><span class="track-chip">T4 · 自然语言处理</span></div>
+        <div class="dos-main">
+          <p class="desc">以项目为导向的 NLU：向量空间与上下文表示、情感分析、检索与上下文学习、模型评测与可解释性，最终完成一个研究型项目。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>春季</dd></div><div><dt>UNITS</dt><dd>63 视频</dd></div><div><dt>NOTE</dt><dd>NLU 项目实践</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cs224n" style="--c: var(--t4)">CS224N</a></dd><dt>后续</dt><dd>无，方向终点</dd></dl>
+        </div>
+        <div class="dos-act">
+          <a class="btn video" href="https://www.youtube.com/playlist?list=PLoROMvodv4rOwvldxftJTmoR3kRcWkJBp" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>YouTube 播放列表</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+          <a class="btn" href="https://github.com/cgpotts/cs224u" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">GitHub 仓库<small>作业与教程 notebook</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cs224n" data-group="t4" data-video="1" data-code="0" style="--c: var(--t4)">
+        <div class="dos-id"><span class="dos-no">NO.08</span><h3><span class="code">CS224N</span><span class="cn">深度学习 NLP</span></h3><span class="track-chip">T4 · 自然语言处理</span></div>
+        <div class="dos-main">
+          <p class="desc">Manning 主讲：词向量、反向传播、RNN 与 LSTM、注意力与 Transformer、预训练与后训练，打通从经典 NLP 到大语言模型的主线。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2024</dd></div><div><dt>UNITS</dt><dd>23 视频</dd></div><div><dt>NOTE</dt><dd>Manning 神课</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cs230" style="--c: var(--t3)">CS230</a></dd><dt>后续</dt><dd><a class="rel" href="#c-cme295" style="--c: var(--t7)">CME295</a><a class="rel" href="#c-cs224u" style="--c: var(--t4)">CS224U</a></dd></dl>
+        </div>
+        <div class="dos-act">
+          <a class="btn video" href="https://youtube.com/playlist?list=PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>YouTube 播放列表</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+          <span class="btn off" aria-disabled="true"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">代码仓库<small>暂无公开链接</small></span></span>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cme295" data-group="t7" data-video="1" data-code="1" style="--c: var(--t7)">
+        <div class="dos-id"><span class="dos-no">NO.09</span><h3><span class="code">CME295</span><span class="cn">Transformer 与大语言模型</span></h3><span class="track-chip">T7 · 大模型前沿</span></div>
+        <div class="dos-main">
+          <p class="desc">从 Transformer 到大模型全景：注意力变体与位置编码、预训练、SFT 与 LoRA、偏好调优（RLHF、DPO）、推理模型、Agent 与评测。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2025</dd></div><div><dt>UNITS</dt><dd>12 视频</dd></div><div><dt>NOTE</dt><dd>大模型前沿</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cs224n" style="--c: var(--t4)">CS224N</a></dd><dt>后续</dt><dd><a class="rel" href="#c-cs336" style="--c: var(--t7)">CS336</a></dd></dl>
+        </div>
+        <div class="dos-act">
+          <a class="btn video" href="https://cme295.stanford.edu/" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>课程官网</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+          <a class="btn" href="https://github.com/afshinea/stanford-cme-295-transformers-large-language-models" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">GitHub 速查表<small>课程概念总结</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+        </div>
+      </article>
+
+      <article class="dos" id="c-cs236" data-group="t6" data-video="0" data-code="1" style="--c: var(--t6)">
+        <div class="dos-id"><span class="dos-no">NO.10</span><h3><span class="code">CS236</span><span class="cn">深度生成模型</span></h3><span class="track-chip">T6 · 生成模型</span></div>
+        <div class="dos-main">
+          <p class="desc">生成模型原理：自回归模型、变分自编码器、归一化流、GAN、能量模型，以及基于分数的扩散模型。</p>
+          <dl class="specs"><div><dt>TERM</dt><dd>2023</dd></div><div><dt>UNITS</dt><dd>18 视频</dd></div><div><dt>NOTE</dt><dd>生成模型原理</dd></div></dl>
+          <dl class="rels"><dt>前置</dt><dd><a class="rel" href="#c-cs230" style="--c: var(--t3)">CS230</a><a class="rel opt" href="#c-cs229m" style="--c: var(--t2)">CS229M</a></dd><dt>后续</dt><dd>无，方向终点</dd></dl>
+        </div>
+        <div class="dos-act">
+          <span class="btn off" aria-disabled="true"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg></span><span class="lbl">视频课<small>暂无公开链接</small></span></span>
+          <a class="btn" href="https://github.com/deepgenerativemodels/notes" target="_blank" rel="noopener"><span class="ic"><svg class="i" aria-hidden="true"><use href="#i-code"/></svg></span><span class="lbl">GitHub 笔记<small>课程讲义</small></span><span class="ext"><svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></span></a>
+        </div>
+      </article>
+
+      <p class="empty" id="empty">没有符合当前筛选条件的课程。<button class="fbtn" type="button" id="resetFilters">清除筛选</button></p>
+    </div>
+  </section>
+
+  <!-- ============ 03 MATRIX ============ -->
+  <section class="wrap section" id="matrix">
+    <header class="sh">
+      <span class="sh-idx">§ 03</span>
+      <h2>对比矩阵<small>一眼看清学期、体量与资源；窄屏可横向滑动，首列固定。</small></h2>
+      <span class="sh-meta">Side by Side</span>
+    </header>
+    <div class="panel tbl">
+      <table>
+        <thead><tr><th scope="col">课程</th><th scope="col">名称</th><th scope="col">轨道</th><th scope="col">学期</th><th scope="col">讲 / 视频</th><th scope="col">视频课</th><th scope="col">代码仓库</th><th scope="col">备注</th></tr></thead>
+        <tbody>
+          <tr style="--c: var(--t1)"><th scope="row">CS221</th><td>人工智能</td><td><span class="lvl">T1 入口</span></td><td>2025 秋</td><td class="units"><span class="ub" style="--v: 31.7"><i></i></span>20 讲</td><td><a class="st v" href="https://www.youtube.com/playlist?list=PLoROMvodv4rMeDqwS1yFl3j3sR_-MQNEN" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>YouTube<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td><a class="st g" href="https://github.com/stanford-cs221/autumn2025-lectures" target="_blank" rel="noopener">GitHub<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td>可执行讲义</td></tr>
+          <tr style="--c: var(--t2)"><th scope="row">CS229</th><td>机器学习</td><td><span class="lvl">T2 机器学习</span></td><td>2026 春</td><td class="units"><span class="ub" style="--v: 31.7"><i></i></span>20 讲</td><td><span class="st no">暂无</span></td><td><span class="st no">暂无</span></td><td>经典 ML 课程</td></tr>
+          <tr style="--c: var(--t7)"><th scope="row">CS336</th><td>从零构建语言模型</td><td><span class="lvl">T7 大模型前沿</span></td><td>2025</td><td class="units"><span class="ub" style="--v: 27"><i></i></span>17 视频</td><td><a class="st v" href="https://www.youtube.com/playlist?list=PLoROMvodv4rOY23Y0BoGoBGgQ1zmU_MT_" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>YouTube<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td><a class="st g" href="https://github.com/stanford-cs336/lectures" target="_blank" rel="noopener">GitHub<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td>代码化讲义</td></tr>
+          <tr style="--c: var(--t2)"><th scope="row">CS229M</th><td>机器学习理论</td><td><span class="lvl">T2 机器学习 · 选修</span></td><td>2021 秋</td><td class="units"><span class="ub" style="--v: 31.7"><i></i></span>20 讲</td><td><span class="st no">暂无</span></td><td><span class="st no">暂无</span></td><td>ML 数学理论</td></tr>
+          <tr style="--c: var(--t3)"><th scope="row">CS230</th><td>深度学习</td><td><span class="lvl">T3 深度学习</span></td><td>2025 秋</td><td class="units"><span class="ub" style="--v: 15.9"><i></i></span>10 讲</td><td><a class="st v" href="https://cs230.stanford.edu/lecture" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>官网<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td><a class="st g" href="https://github.com/cs230-stanford/cs230-code-examples" target="_blank" rel="noopener">GitHub<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td>吴恩达主讲，示例代码</td></tr>
+          <tr style="--c: var(--t5)"><th scope="row">CS234</th><td>强化学习</td><td><span class="lvl">T5 强化学习</span></td><td>2024</td><td class="units"><span class="ub" style="--v: 25.4"><i></i></span>16 视频</td><td><span class="st no">暂无</span></td><td><span class="st no">暂无</span></td><td>RL 核心算法</td></tr>
+          <tr style="--c: var(--t4)"><th scope="row">CS224U</th><td>自然语言理解</td><td><span class="lvl">T4 自然语言处理</span></td><td>春季</td><td class="units"><span class="ub" style="--v: 100"><i></i></span>63 视频</td><td><a class="st v" href="https://www.youtube.com/playlist?list=PLoROMvodv4rOwvldxftJTmoR3kRcWkJBp" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>YouTube<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td><a class="st g" href="https://github.com/cgpotts/cs224u" target="_blank" rel="noopener">GitHub<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td>NLU 项目实践</td></tr>
+          <tr style="--c: var(--t4)"><th scope="row">CS224N</th><td>深度学习 NLP</td><td><span class="lvl">T4 自然语言处理</span></td><td>2024</td><td class="units"><span class="ub" style="--v: 36.5"><i></i></span>23 视频</td><td><a class="st v" href="https://youtube.com/playlist?list=PLoROMvodv4rMFqRtEuo6SGjY4XbRIVRd4" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>YouTube<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td><span class="st no">暂无</span></td><td>Manning 神课</td></tr>
+          <tr style="--c: var(--t7)"><th scope="row">CME295</th><td>Transformer 与大语言模型</td><td><span class="lvl">T7 大模型前沿</span></td><td>2025</td><td class="units"><span class="ub" style="--v: 19"><i></i></span>12 视频</td><td><a class="st v" href="https://cme295.stanford.edu/" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>官网<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td><a class="st g" href="https://github.com/afshinea/stanford-cme-295-transformers-large-language-models" target="_blank" rel="noopener">速查表<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td>大模型前沿</td></tr>
+          <tr style="--c: var(--t6)"><th scope="row">CS236</th><td>深度生成模型</td><td><span class="lvl">T6 生成模型</span></td><td>2023</td><td class="units"><span class="ub" style="--v: 28.6"><i></i></span>18 视频</td><td><span class="st no">暂无</span></td><td><a class="st g" href="https://github.com/deepgenerativemodels/notes" target="_blank" rel="noopener">笔记<svg class="i" aria-hidden="true"><use href="#i-ext"/></svg></a></td><td>生成模型原理</td></tr>
+        </tbody>
+      </table>
+      <div class="mfoot">条形以最多的 63 为满格。“讲”与“视频”单位不同：CS224U 的 63 个视频是短小的主题单元，不代表课时最长。</div>
+    </div>
+  </section>
+
+  <!-- ============ 04 ROUTES ============ -->
+  <section class="wrap section" id="routes">
+    <header class="sh">
+      <span class="sh-idx">§ 04</span>
+      <h2>学习路线<small>按目标挑一条线；线路颜色取主线终点课程的轨道色，站点颜色取各课程自己的轨道色。</small></h2>
+      <span class="sh-meta">Route Map</span>
+    </header>
+    <div class="metro">
+      <div class="panel line" style="--c: var(--t7)">
+        <div class="line-head"><span class="tag">LLM ENGINEERING</span><h3>大模型工程</h3><p>理解并亲手训练语言模型，适合大模型应用、训练与推理优化方向。</p></div>
+        <ol class="stops">
+          <li style="--s: var(--t1)"><a href="#c-cs221"><i></i><span><b>CS221</b><small>人工智能</small></span></a></li>
+          <li style="--s: var(--t2)"><a href="#c-cs229"><i></i><span><b>CS229</b><small>机器学习</small></span></a></li>
+          <li style="--s: var(--t3)"><a href="#c-cs230"><i></i><span><b>CS230</b><small>深度学习</small></span></a></li>
+          <li style="--s: var(--t4)"><a href="#c-cs224n"><i></i><span><b>CS224N</b><small>深度学习 NLP</small></span></a></li>
+          <li style="--s: var(--t7)"><a href="#c-cme295"><i></i><span><b>CME295</b><small>Transformer 与大语言模型</small></span></a></li>
+          <li style="--s: var(--t7)"><a href="#c-cs336"><i></i><span><b>CS336</b><small>从零构建语言模型</small></span></a></li>
+        </ol>
+      </div>
+      <div class="panel line" style="--c: var(--t5)">
+        <div class="line-head"><span class="tag">DECISION · ROBOTICS</span><h3>决策与具身智能</h3><p>以强化学习为核心，衔接机器人控制与大模型对齐（RLHF）。</p></div>
+        <ol class="stops">
+          <li style="--s: var(--t1)"><a href="#c-cs221"><i></i><span><b>CS221</b><small>人工智能</small></span></a></li>
+          <li style="--s: var(--t2)"><a href="#c-cs229"><i></i><span><b>CS229</b><small>机器学习</small></span></a></li>
+          <li style="--s: var(--t3)"><a href="#c-cs230"><i></i><span><b>CS230</b><small>深度学习</small></span></a></li>
+          <li style="--s: var(--t5)"><a href="#c-cs234"><i></i><span><b>CS234</b><small>强化学习</small></span></a></li>
+          <li class="opt" style="--s: var(--t7)"><a href="#c-cs336"><i></i><span><b>CS336</b><small>选修：对齐部分</small></span></a></li>
+        </ol>
+      </div>
+      <div class="panel line" style="--c: var(--t6)">
+        <div class="line-head"><span class="tag">RESEARCH</span><h3>理论与生成模型研究</h3><p>偏数学与原理，适合读论文、做生成模型方向的研究。</p></div>
+        <ol class="stops">
+          <li style="--s: var(--t2)"><a href="#c-cs229"><i></i><span><b>CS229</b><small>机器学习</small></span></a></li>
+          <li style="--s: var(--t2)"><a href="#c-cs229m"><i></i><span><b>CS229M</b><small>机器学习理论</small></span></a></li>
+          <li style="--s: var(--t3)"><a href="#c-cs230"><i></i><span><b>CS230</b><small>深度学习</small></span></a></li>
+          <li style="--s: var(--t6)"><a href="#c-cs236"><i></i><span><b>CS236</b><small>深度生成模型</small></span></a></li>
+        </ol>
+      </div>
+      <div class="panel line" style="--c: var(--t4)">
+        <div class="line-head"><span class="tag">LANGUAGE</span><h3>语言理解实践</h3><p>从深度学习 NLP 到以项目为导向的语言理解，产出一个研究型项目。</p></div>
+        <ol class="stops">
+          <li style="--s: var(--t3)"><a href="#c-cs230"><i></i><span><b>CS230</b><small>深度学习</small></span></a></li>
+          <li style="--s: var(--t4)"><a href="#c-cs224n"><i></i><span><b>CS224N</b><small>深度学习 NLP</small></span></a></li>
+          <li style="--s: var(--t4)"><a href="#c-cs224u"><i></i><span><b>CS224U</b><small>自然语言理解</small></span></a></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NOTES ============ -->
+  <section class="wrap section" id="notes">
+    <header class="sh">
+      <span class="sh-idx">§ 05</span>
+      <h2>数据说明</h2>
+      <span class="sh-meta">Data Notes</span>
+    </header>
+    <div class="panel">
+      <ul class="notes">
+        <li>学期、讲数 / 视频数与备注沿用原始课程清单；课程依赖关系是按知识层次给出的学习顺序建议，并非学校规定的先修要求。</li>
+        <li>GitHub 仓库与课程官网链接核对于 2026-11-03：CS221 的仓库已改名为 <code>stanford-cs221/lectures</code>，原链接会自动跳转。</li>
+        <li>CS230 与 CME295 的课程视频发布在课程官网，按钮直接指向 cs230.stanford.edu/lecture 与 cme295.stanford.edu。</li>
+        <li>CME295 的 GitHub 链接是课程速查表，CS236 的链接是课程笔记，都不是作业代码仓库。</li>
+      </ul>
+    </div>
+    <p class="end">斯坦福 AI 课程地图 · 与《大模型可视化学习指南》同一设计系列 · 链接核对于 2026-11-03</p>
+  </section>
+</main>
+
+<button class="totop" id="totop" type="button" aria-label="回到顶部"><svg class="i" aria-hidden="true"><use href="#i-up"/></svg></button>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var css = getComputedStyle(document.documentElement);
+  function token(n) { return css.getPropertyValue(n).trim(); }
+  var TRACK = { CS221: "--t1", CS229: "--t2", CS229M: "--t2", CS230: "--t3", CS224N: "--t4", CS224U: "--t4", CS234: "--t5", CS236: "--t6", CME295: "--t7", CS336: "--t7" };
+
+  /* ---------- filters ---------- */
+  var group = "all", needs = { video: false, code: false };
+  var rows = Array.prototype.slice.call(document.querySelectorAll(".dos"));
+  var count = document.getElementById("fcount");
+  var empty = document.getElementById("empty");
+  function applyFilters() {
+    var shown = 0;
+    rows.forEach(function (r) {
+      var ok = (group === "all" || r.dataset.group === group) && (!needs.video || r.dataset.video === "1") && (!needs.code || r.dataset.code === "1");
+      r.hidden = !ok;
+      if (ok) shown++;
+    });
+    count.textContent = "显示 " + shown + " / " + rows.length;
+    empty.classList.toggle("show", shown === 0);
+  }
+  function resetFilters() {
+    group = "all"; needs.video = needs.code = false;
+    Array.prototype.forEach.call(document.querySelectorAll(".fbtn[data-group]"), function (b) { b.setAttribute("aria-pressed", b.dataset.group === "all" ? "true" : "false"); });
+    Array.prototype.forEach.call(document.querySelectorAll(".fbtn[data-need]"), function (b) { b.setAttribute("aria-pressed", "false"); });
+    applyFilters();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".fbtn[data-group]"), function (b) {
+    b.addEventListener("click", function () {
+      group = b.dataset.group;
+      Array.prototype.forEach.call(document.querySelectorAll(".fbtn[data-group]"), function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      applyFilters();
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".fbtn[data-need]"), function (b) {
+    b.addEventListener("click", function () {
+      needs[b.dataset.need] = !needs[b.dataset.need];
+      b.setAttribute("aria-pressed", needs[b.dataset.need] ? "true" : "false");
+      applyFilters();
+    });
+  });
+  document.getElementById("resetFilters").addEventListener("click", resetFilters);
+
+  /* ---------- in-page navigation ---------- */
+  function goTo(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (el.hidden) { resetFilters(); }
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('a[href^="#"]:not(.skip)'), function (a) {
+    a.addEventListener("click", function (e) {
+      var id = a.getAttribute("href").slice(1);
+      if (!document.getElementById(id)) return;
+      e.preventDefault();
+      goTo(id);
+    });
+  });
+
+  /* ---------- Mermaid graph ---------- */
+  var fig = document.getElementById("depfig");
+  var edgeButtons = Array.prototype.slice.call(document.querySelectorAll("#edgeList button"));
+  var G = { nodes: {}, edges: [] };
+  function highlight(match) {
+    fig.classList.add("is-focus");
+    var on = {};
+    G.edges.forEach(function (e) {
+      var hit = match(e);
+      e.el.classList.toggle("on", hit);
+      if (hit) { on[e.f] = true; on[e.t] = true; }
+    });
+    Object.keys(G.nodes).forEach(function (k) { G.nodes[k].classList.toggle("on", !!on[k]); });
+  }
+  function clearHL() {
+    fig.classList.remove("is-focus");
+    G.edges.forEach(function (e) { e.el.classList.remove("on"); });
+    Object.keys(G.nodes).forEach(function (k) { G.nodes[k].classList.remove("on"); });
+    edgeButtons.forEach(function (b) { b.classList.remove("on"); });
+  }
+  function isMouse(e) { return e.pointerType === "mouse"; }
+  function kbFocus(el) { try { return el.matches(":focus-visible"); } catch (err) { return true; } }
+  function focusNode(code) {
+    highlight(function (e) { return e.f === code || e.t === code; });
+    G.nodes[code] && G.nodes[code].classList.add("on");
+    edgeButtons.forEach(function (b) { b.classList.toggle("on", b.dataset.f === code || b.dataset.t === code); });
+  }
+  edgeButtons.forEach(function (b) {
+    function on() { clearHL(); highlight(function (e) { return e.f === b.dataset.f && e.t === b.dataset.t; }); b.classList.add("on"); }
+    b.addEventListener("pointerenter", function (e) { if (isMouse(e)) on(); });
+    b.addEventListener("focus", function () { if (kbFocus(b)) on(); });
+    b.addEventListener("click", on);
+    b.addEventListener("pointerleave", function (e) { if (isMouse(e)) clearHL(); });
+    b.addEventListener("blur", clearHL);
+  });
+
+  function wireGraph() {
+    var svg = fig.querySelector("svg");
+    if (!svg) return;
+    var re = /L[_-]([A-Za-z0-9]+)[_-]([A-Za-z0-9]+)[_-]\d+$/;
+    Array.prototype.forEach.call(svg.querySelectorAll("g.node"), function (g) {
+      var m = (g.id || "").match(/flowchart-([A-Za-z0-9]+)-\d+$/);
+      if (!m) return;
+      var code = m[1];
+      G.nodes[code] = g;
+      g.setAttribute("tabindex", "0");
+      g.setAttribute("role", "link");
+      g.setAttribute("aria-label", code + "，查看课程档案");
+      g.addEventListener("click", function () { clearHL(); goTo("c-" + code.toLowerCase()); });
+      g.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goTo("c-" + code.toLowerCase()); } });
+      g.addEventListener("pointerenter", function (e) { if (isMouse(e)) focusNode(code); });
+      g.addEventListener("pointerleave", function (e) { if (isMouse(e)) clearHL(); });
+      g.addEventListener("focus", function () { if (kbFocus(g)) focusNode(code); });
+      g.addEventListener("blur", clearHL);
+    });
+    Array.prototype.forEach.call(svg.querySelectorAll("path.flowchart-link"), function (p) {
+      var m = (p.id || "").match(re);
+      if (!m) return;
+      G.edges.push({ el: p, f: m[1], t: m[2] });
+      var dashed = /edge-pattern-(dotted|dashed)/.test(p.getAttribute("class") || "");
+      if (!dashed && !reduce) {
+        var sig = p.cloneNode(false);
+        sig.removeAttribute("id"); sig.removeAttribute("marker-end"); sig.removeAttribute("style");
+        sig.setAttribute("class", "sig");
+        p.parentNode.insertBefore(sig, p.nextSibling);
+        G.edges.push({ el: sig, f: m[1], t: m[2] });
+      }
+    });
+    Array.prototype.forEach.call(svg.querySelectorAll("g.edgeLabel"), function (g) {
+      var inner = g.querySelector("[data-id]");
+      var m = inner && (inner.getAttribute("data-id") || "").match(re);
+      if (!m) return;
+      G.edges.push({ el: g, f: m[1], t: m[2] });
+      g.style.setProperty("--lc", token(TRACK[m[2]] || "--rule-2"));
+      var path = svg.querySelector('path.flowchart-link[id$="L_' + m[1] + "_" + m[2] + '_0"]');
+      if (path && /edge-pattern-(dotted|dashed)/.test(path.getAttribute("class") || "")) g.classList.add("dash");
+    });
+    var scroller = fig.querySelector(".graph-body");
+    if (scroller && scroller.scrollWidth > scroller.clientWidth && G.nodes.CS221) {
+      var nr = G.nodes.CS221.getBoundingClientRect(), sr = scroller.getBoundingClientRect();
+      scroller.scrollLeft += (nr.left + nr.width / 2) - (sr.left + sr.width / 2);
+    }
+  }
+
+  function renderGraph() {
+    if (!window.mermaid) { document.documentElement.classList.add("no-mermaid"); return; }
+    var T = {
+      darkMode: true,
+      background: token("--panel"),
+      fontFamily: '"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif',
+      fontSize: "14px",
+      primaryColor: token("--panel-2"), primaryTextColor: token("--ink"), primaryBorderColor: token("--rule-2"),
+      lineColor: "#7f8fa9", textColor: "#c9d3e3", edgeLabelBackground: "#0b1019"
+    };
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    ready.catch(function () {}).then(function () {
+      window.mermaid.initialize({
+        startOnLoad: false, securityLevel: "strict", theme: "base", themeVariables: T,
+        flowchart: { curve: "basis", htmlLabels: true, useMaxWidth: false, nodeSpacing: 36, rankSpacing: 50, padding: 16, diagramPadding: 12 }
+      });
+      return window.mermaid.run({ querySelector: "#depfig pre.mermaid" });
+    }).then(wireGraph).catch(function (err) {
+      document.documentElement.classList.add("no-mermaid");
+      if (window.console) console.error(err);
+    });
+  }
+  document.addEventListener("DOMContentLoaded", renderGraph);
+
+  /* ---------- scrollspy + progress + back-to-top ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll('.nav ol a'));
+  var targets = links.map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); });
+  var bar = document.getElementById("bar");
+  var totop = document.getElementById("totop");
+  var ticking = false;
+  function update() {
+    ticking = false;
+    var doc = document.documentElement;
+    var max = Math.max(1, doc.scrollHeight - window.innerHeight);
+    var y = window.scrollY || doc.scrollTop;
+    bar.style.width = Math.min(100, (y / max) * 100) + "%";
+    totop.classList.toggle("show", y > 900);
+    var line = (document.querySelector(".nav").offsetHeight || 60) + 60, current = 0, best = -Infinity;
+    targets.forEach(function (el, i) {
+      if (!el) return;
+      var top = el.getBoundingClientRect().top;
+      if (top <= line && top > best) { best = top; current = i; }
+    });
+    links.forEach(function (a, i) {
+      var on = i === current;
+      a.classList.toggle("active", on);
+      if (on) {
+        a.setAttribute("aria-current", "location");
+        var ol = a.closest("ol");
+        if (ol && ol.scrollWidth > ol.clientWidth) {
+          var lr = a.getBoundingClientRect(), orr = ol.getBoundingClientRect();
+          if (lr.left < orr.left || lr.right > orr.right) ol.scrollLeft += lr.left - orr.left - 16;
+        }
+      } else a.removeAttribute("aria-current");
+    });
+  }
+  window.addEventListener("scroll", function () { if (!ticking) { ticking = true; window.requestAnimationFrame(update); } }, { passive: true });
+  window.addEventListener("resize", update);
+  update();
+  totop.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); });
+})();
+</script>
+</body>
+</html>
