@@ -117,11 +117,45 @@ const url = process.argv[2];
       const core = lines[lines.length - 1].s.replace(/[，。、；：！？）」”》,.;:!?)\]]/g, '');
       if (core.length === 1 && /[一-鿿]/.test(core)) out.orphans.push(lines[lines.length - 2].s.slice(-10) + ' | ' + lines[lines.length - 1].s);
     }
+    // ---- glyph icons hidden in CSS: content of ::before / ::after / ::marker and list-style strings ----
+    // Reads every rule through the CSSOM, so escapes such as content: "\25B6" and rules that match
+    // nothing right now (hover, hidden states) are caught too; then checks what is actually rendered.
+    out.cssGlyphs = [];
+    { const GLYPH = /[←-⇿⌀-⏿─-➿⟰-⟿⤀-⥿⬀-⯿️]|[\u{1F000}-\u{1FAFF}]/u;
+      const props = ['content', 'list-style-type', 'list-style'];
+      const walk = (rules, where) => { for (const rule of rules) {
+        if (rule.cssRules) walk(rule.cssRules, where);
+        if (!rule.style) continue;
+        for (const prop of props) {
+          const v = rule.style.getPropertyValue(prop);
+          if (v && GLYPH.test(v)) out.cssGlyphs.push(where + ' ' + (rule.selectorText || rule.cssText.split('{')[0].trim()) + ' { ' + prop + ': ' + v + ' }');
+        }
+      } };
+      for (const sh of document.styleSheets) {
+        const where = sh.href ? sh.href.split('/').pop() : '<style>';
+        let rules; try { rules = sh.cssRules; } catch (e) { if (!/fonts\.googleapis/.test(sh.href || '')) out.cssGlyphs.push('unreadable stylesheet ' + sh.href); continue; }
+        walk(rules, where);
+      }
+      for (const el of document.querySelectorAll('[style]')) for (const prop of props) {
+        const v = el.style.getPropertyValue(prop);
+        if (v && GLYPH.test(v)) out.cssGlyphs.push('inline style on <' + el.tagName.toLowerCase() + '> { ' + prop + ': ' + v + ' }');
+      }
+      const rendered = {};
+      for (const el of document.querySelectorAll('body *')) for (const ps of ['::before', '::after', '::marker']) {
+        const v = getComputedStyle(el, ps).content;
+        if (v && v !== 'none' && v !== 'normal' && GLYPH.test(v)) {
+          const k = el.tagName.toLowerCase() + (el.classList.length ? '.' + [...el.classList].join('.') : '') + ps + ' ' + v;
+          rendered[k] = (rendered[k] || 0) + 1;
+        }
+      }
+      Object.entries(rendered).forEach(([k, n]) => out.cssGlyphs.push('rendered ' + k + ' ×' + n));
+    }
     return out;
   });
   console.log('== TEXT ==\n' + (r.text.join('\n') || 'none'));
   console.log('== SMALL TEXT (<12px) ==\n' + (r.small.join('\n') || 'none'));
   console.log('== ORPHAN LINES ==\n' + (r.orphans.join('\n') || 'none'));
+  console.log('== CSS GLYPHS (pseudo-element content, list-style) ==\n' + (r.cssGlyphs.join('\n') || 'none'));
   console.log('== DATA ==\n' + (r.data.join('\n') || 'none'));
   console.log('== SIZES (heights px) ==');
   Object.entries(r.sizes).forEach(([k, v]) => console.log('  ' + k.padEnd(14) + v));
